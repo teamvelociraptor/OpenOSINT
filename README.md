@@ -1,0 +1,1 @@
+OpenOSINT, ai agent for osint with llm, basically, you chat with the ai and ask infos about certain things (a lot of tool already downloaded and pre installed) 

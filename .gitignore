@@ -1,0 +1,22 @@
+# Structure and personal notes
+project_map.txt
+.dev_structure
+note_sviluppo.md
+ai_handler_test.py
+
+
+# Database e sensible data
+openosint.db
+config.py
+reports/*
+!reports/.gitkeep
+
+# Python e Environment
+__pycache__/
+venv/
+*.pyc
+
+# OS and IDE
+.DS_Store
+.vscode/
+.idea/
