@@ -1,25 +1,74 @@
-# Structure and personal notes
-project_map.txt
-.dev_structure
-note_sviluppo.md
-ai_handler_test.py
-
-# Claude Code
-.claude/
-CLAUDE.md
-
-# Database e sensible data
-openosint.db
-config.py
-reports/*
-!reports/.gitkeep
-
-# Python e Environment
+# Python
 __pycache__/
-venv/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
 
-# OS and IDE
-.DS_Store
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OpenOSINT specific
+reports/
+*.osint
+*.report
+cache/
+.openosint_cache/
+
+# Distribution
+dist/
+build/
+*.egg-info/

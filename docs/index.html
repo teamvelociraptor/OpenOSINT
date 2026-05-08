@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="OpenOSINT — AI-powered Open Source Intelligence agent for security researchers, journalists, and investigators." />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>OpenOSINT — AI-Powered OSINT Agent</title>
+
+  <!-- Pico.css -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+  <!-- Prism.js (syntax highlighting) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ─── Nav ─────────────────────────────────────────────────────────────── -->
+<nav class="container-fluid nav-main">
+  <div class="nav-logo">
+    <span class="logo-open">OPEN</span><span class="logo-osint">OSINT</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#install">Install</a></li>
+    <li><a href="#tools">Tools</a></li>
+    <li><a href="#providers">Providers</a></li>
+    <li><a href="#docs">Docs</a></li>
+    <li>
+      <a href="https://github.com/openosint/openosint" class="nav-github" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        GitHub
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<!-- ─── Hero ─────────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="hero-badge">v1.0.0 · Open Source · MIT</div>
+    <h1 class="hero-title">
+      <span class="hero-open">OPEN</span><span class="hero-osint">OSINT</span>
+    </h1>
+    <p class="hero-tagline">
+      AI-powered intelligence gathering for security researchers,<br />
+      journalists, and investigators.
+    </p>
+    <div class="hero-terminal">
+      <div class="terminal-bar">
+        <span class="dot dot-red"></span>
+        <span class="dot dot-yellow"></span>
+        <span class="dot dot-green"></span>
+        <span class="terminal-title">openosint</span>
+      </div>
+      <pre class="terminal-body"><code id="hero-demo"></code></pre>
+    </div>
+    <div class="hero-actions">
+      <a href="#install" class="btn-primary">Get Started</a>
+      <a href="https://github.com/openosint/openosint" class="btn-secondary" target="_blank" rel="noopener">View on GitHub →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Features ─────────────────────────────────────────────────────────── -->
+<section id="features" class="section">
+  <div class="container">
+    <h2 class="section-title">Why OpenOSINT?</h2>
+    <p class="section-subtitle">
+      The AI decides which tools to run and in what order.<br />
+      You just provide the target.
+    </p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Native Tool Use</h3>
+        <p>Built on Anthropic's tool use API — no brittle JSON ReAct loops. The model autonomously chains tools and pivots on findings.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">◈</div>
+        <h3>10 OSINT Modules</h3>
+        <p>Email validation, username enumeration (17 platforms), domain WHOIS + DNS, IP geolocation, phone analysis, breach checks, metadata extraction, and Google dork generation.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">◉</div>
+        <h3>Beautiful Terminal UI</h3>
+        <p>Rich-powered interface with live tool execution, spinners, structured reports, and auto-saved Markdown files — designed to produce beautiful screenshots.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⊕</div>
+        <h3>Multi-Provider</h3>
+        <p>Works with Anthropic (default), OpenAI, or any Ollama local model. Switch with one environment variable.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⌕</div>
+        <h3>Zero Friction Setup</h3>
+        <p>One API key to get started. Optional integrations for HaveIBeenPwned and AbuseIPDB unlock deeper breach and reputation data.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">☏</div>
+        <h3>Interactive + One-shot</h3>
+        <p>Conversational REPL for iterative investigations, or a single <code>openosint investigate &lt;target&gt;</code> command for scripting and pipelines.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Install ───────────────────────────────────────────────────────────── -->
+<section id="install" class="section section-alt">
+  <div class="container">
+    <h2 class="section-title">Installation</h2>
+
+    <div class="install-steps">
+      <div class="install-step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Clone & install</h3>
+          <pre><code class="language-bash">git clone https://github.com/openosint/openosint
+cd openosint
+bash setup.sh          # creates venv, installs deps
+source .venv/bin/activate</code></pre>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Set your API key</h3>
+          <pre><code class="language-bash">export ANTHROPIC_API_KEY=sk-ant-...
+# or add to .env file (copy from .env.example)</code></pre>
+          <p class="step-note">Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>. Free tier available.</p>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Run your first investigation</h3>
+          <pre><code class="language-bash">openosint investigate john@example.com
+# or launch the interactive REPL
+openosint</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="install-alt">
+      <h3>Or install via pip</h3>
+      <pre><code class="language-bash">pip install openosint</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Tools ────────────────────────────────────────────────────────────── -->
+<section id="tools" class="section">
+  <div class="container">
+    <h2 class="section-title">OSINT Tools</h2>
+    <p class="section-subtitle">
+      All tools are called autonomously by the AI. They can also be used directly via the Python API.
+    </p>
+    <div class="tools-table-wrap">
+      <table class="tools-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Target Type</th>
+            <th>Data Sources</th>
+            <th>API Key</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>check_email</code></td>
+            <td>Email address</td>
+            <td>DNS/MX records, provider detection, disposable DB</td>
+            <td class="badge-none">None</td>
+          </tr>
+          <tr>
+            <td><code>check_username</code></td>
+            <td>Username</td>
+            <td>GitHub, Reddit, Twitter/X, Instagram, TikTok, YouTube, Twitch, +10 more</td>
+            <td class="badge-none">None</td>
+          </tr>
+          <tr>
+            <td><code>check_domain</code></td>
+            <td>Domain</td>
+            <td>WHOIS, DNS (A/MX/NS/TXT), SSL certificate, HTTP headers</td>
+            <td class="badge-none">None</td>
+          </tr>
+          <tr>
+            <td><code>check_ip</code></td>
+            <td>IP address</td>
+            <td>ip-api.com geolocation, reverse DNS, AbuseIPDB (optional)</td>
+            <td class="badge-optional">Optional</td>
+          </tr>
+          <tr>
+            <td><code>check_phone</code></td>
+            <td>Phone number</td>
+            <td>libphonenumber — country, carrier, line type</td>
+            <td class="badge-none">None</td>
+          </tr>
+          <tr>
+            <td><code>check_breach</code></td>
+            <td>Email address</td>
+            <td>HaveIBeenPwned v3 — breaches and pastes</td>
+            <td class="badge-required">Required</td>
+          </tr>
+          <tr>
+            <td><code>check_metadata</code></td>
+            <td>Image URL</td>
+            <td>EXIF data — GPS, camera, timestamps</td>
+            <td class="badge-none">None</td>
+          </tr>
+          <tr>
+            <td><code>generate_dorks</code></td>
+            <td>Any</td>
+            <td>Generated Google/Bing dork queries (no API call)</td>
+            <td class="badge-none">None</td>
+          </tr>
+          <tr>
+            <td><code>dns_lookup</code></td>
+            <td>Domain</td>
+            <td>DNS resolver — A, AAAA, MX, NS, TXT, CNAME, SOA, PTR</td>
+            <td class="badge-none">None</td>
+          </tr>
+          <tr>
+            <td><code>whois_lookup</code></td>
+            <td>Domain / IP</td>
+            <td>WHOIS — registrar, dates, nameservers, registrant</td>
+            <td class="badge-none">None</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Providers ─────────────────────────────────────────────────────────── -->
+<section id="providers" class="section section-alt">
+  <div class="container">
+    <h2 class="section-title">AI Providers</h2>
+    <p class="section-subtitle">Swap providers with a single environment variable.</p>
+    <div class="providers-grid">
+      <div class="provider-card provider-default">
+        <div class="provider-badge">Default</div>
+        <h3>Anthropic</h3>
+        <p>Best results. Uses Claude's native tool use API with <code>stop_reason: tool_use</code> — no prompt engineering needed.</p>
+        <pre><code class="language-bash">export ANTHROPIC_API_KEY=sk-ant-...
+export OPENOSINT_MODEL=claude-sonnet-4-20250514</code></pre>
+      </div>
+      <div class="provider-card">
+        <h3>OpenAI</h3>
+        <p>Compatible with GPT-4o and later models via the OpenAI function calling API.</p>
+        <pre><code class="language-bash">export OPENAI_API_KEY=sk-...
+export OPENOSINT_PROVIDER=openai</code></pre>
+      </div>
+      <div class="provider-card">
+        <h3>Ollama</h3>
+        <p>Run locally with any Ollama model that supports function calling (llama3.1, qwen2.5, etc.). No API costs.</p>
+        <pre><code class="language-bash">export OPENOSINT_PROVIDER=ollama
+export OPENOSINT_MODEL=llama3.1
+export OLLAMA_BASE_URL=http://localhost:11434</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CLI Docs ───────────────────────────────────────────────────────────── -->
+<section id="docs" class="section">
+  <div class="container">
+    <h2 class="section-title">CLI Reference</h2>
+
+    <div class="docs-grid">
+      <div class="doc-block">
+        <h3>Interactive Mode</h3>
+        <pre><code class="language-bash">openosint</code></pre>
+        <p>Launches the interactive REPL. Type any target to start an investigation. The agent maintains conversation context across messages.</p>
+        <pre><code class="language-text">openosint ❯ john.doe@gmail.com
+openosint ❯ What about related domains?
+openosint ❯ save
+openosint ❯ quit</code></pre>
+      </div>
+
+      <div class="doc-block">
+        <h3>One-Shot Investigation</h3>
+        <pre><code class="language-bash">openosint investigate &lt;target&gt; [--save] [--output FILE]</code></pre>
+        <p>Ideal for scripts and pipelines. Outputs the report to stdout and optionally saves to a Markdown file.</p>
+        <pre><code class="language-bash">openosint investigate 8.8.8.8
+openosint investigate example.com --save
+openosint investigate user@corp.com --output report.md</code></pre>
+      </div>
+
+      <div class="doc-block">
+        <h3>Configuration</h3>
+        <pre><code class="language-bash">openosint config --show
+openosint config --provider anthropic
+openosint config --model claude-opus-4-5</code></pre>
+        <p>Settings are stored in <code>~/.config/openosint/config.json</code>. Environment variables always override saved settings.</p>
+      </div>
+
+      <div class="doc-block">
+        <h3>Python API</h3>
+        <pre><code class="language-python">from openosint.config import Config
+from openosint.display import Display
+from openosint.agent import OpenOSINTAgent
+
+config = Config.load()
+display = Display(quiet=True)
+agent = OpenOSINTAgent(config, display)
+
+report = agent.investigate("example.com")
+print(report)</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Ethics ────────────────────────────────────────────────────────────── -->
+<section class="section section-alt">
+  <div class="container ethics-section">
+    <h2 class="section-title">Responsible Use</h2>
+    <div class="ethics-grid">
+      <div class="ethics-item ethics-do">
+        <h4>✓ Intended for</h4>
+        <ul>
+          <li>Security research and penetration testing (with authorization)</li>
+          <li>Investigative journalism on matters of public interest</li>
+          <li>Digital forensics and incident response</li>
+          <li>CTF challenges and security education</li>
+          <li>Verifying your own digital footprint</li>
+        </ul>
+      </div>
+      <div class="ethics-item ethics-dont">
+        <h4>✗ Not for</h4>
+        <ul>
+          <li>Stalking, harassment, or doxing</li>
+          <li>Unauthorized surveillance of individuals</li>
+          <li>Activities violating GDPR, CCPA, or applicable privacy law</li>
+          <li>Automated mass harvesting of personal data</li>
+        </ul>
+      </div>
+    </div>
+    <p class="ethics-note">
+      OpenOSINT only queries publicly available data sources. Users are solely responsible for
+      ensuring their use complies with applicable laws and regulations.
+    </p>
+  </div>
+</section>
+
+<!-- ─── Footer ───────────────────────────────────────────────────────────── -->
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-logo">
+      <span class="logo-open">OPEN</span><span class="logo-osint">OSINT</span>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/openosint/openosint" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/openosint/openosint/issues" target="_blank" rel="noopener">Issues</a>
+      <a href="https://github.com/openosint/openosint/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+    </div>
+    <div class="footer-meta">
+      Built with <a href="https://www.anthropic.com" target="_blank" rel="noopener">Anthropic</a> ·
+      <a href="https://picocss.com" target="_blank" rel="noopener">Pico.css</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Prism.js -->
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
