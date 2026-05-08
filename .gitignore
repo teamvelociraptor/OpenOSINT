@@ -4,6 +4,9 @@ project_map.txt
 note_sviluppo.md
 ai_handler_test.py
 
+# Claude Code
+.claude/
+CLAUDE.md
 
 # Database e sensible data
 openosint.db

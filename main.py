@@ -1,5 +1,11 @@
 import cmd 
 import sys
+import os
+
+# Ensure the core and modules directories are accessible
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'core')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'modules')))
+
 from core.llm_client import generate_response
 
 class OpenOsintManager:
@@ -17,23 +23,37 @@ class OpenOsintShell(cmd.Cmd):
     def __init__(self):
         super().__init__()
         self.manager = OpenOsintManager()
+        # Initialize conversation memory
+        self.history = []
 
     def default(self, line: str):
         """
-        Viene chiamato quando l'input non corrisponde a nessun metodo 'do_'.
-        Invia il testo direttamente all'IA.
+        Triggered when input doesn't match any 'do_' command.
+        Sends the text to the AI with context preservation.
         """
         if line.strip():
-            print(generate_response(line))
+            # Get response from AI passing the current history
+            response = generate_response(line, history=self.history)
+            
+            # Update history with the new exchange
+            self.history.append({'role': 'user', 'content': line})
+            self.history.append({'role': 'assistant', 'content': response})
+            
+            print(response)
         else:
             super().default(line)
 
     def do_run_ai(self, arg: str):
-        """Force an AI response. Usage: run_ai [prompt]"""
+        """Force an AI response using the current context. Usage: run_ai [prompt]"""
         if arg:
-            print(generate_response(arg))
+            self.default(arg)
         else:
             print("*** Error: please provide a prompt.")
+            
+    def do_clear(self, _arg: str):
+        """Clear the conversation memory. Usage: clear"""
+        self.history = []
+        print("--- Conversation memory cleared ---")
     
     def do_greet(self, arg: str):
         """Greet a user by name. Usage: greet [name]"""

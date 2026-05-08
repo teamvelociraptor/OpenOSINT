@@ -1,0 +1,6 @@
+ollama
+requests
+python-whois
+holehe
+sherlock-project
+sublist3r
