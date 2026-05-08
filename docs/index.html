@@ -1,374 +1,810 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="night">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="OpenOSINT — AI-powered Open Source Intelligence agent for security researchers, journalists, and investigators." />
-  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="description" content="OpenOSINT — AI-powered OSINT agent for security researchers, journalists, and investigators. Powered by Claude." />
+  <meta name="theme-color" content="#030712" />
   <title>OpenOSINT — AI-Powered OSINT Agent</title>
 
-  <!-- Pico.css -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
-  <!-- Prism.js (syntax highlighting) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" />
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="style.css" />
+  <!-- DaisyUI (must load before Tailwind script) -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css" rel="stylesheet" />
+
+  <!-- Prism.js -->
+  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+
+  <!-- Splitting.js -->
+  <link href="https://cdn.jsdelivr.net/npm/splitting@1.0.6/dist/splitting.css" rel="stylesheet" />
+
+  <!-- Custom CSS (before Tailwind so Tailwind utilities can override) -->
+  <link href="style.css" rel="stylesheet" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            syne: ['Syne', 'sans-serif'],
+            ibm: ['"IBM Plex Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Alpine.js component defs — must be sync, before Alpine defer -->
+  <script>
+    function siteState() {
+      return {
+        sidebarOpen: false,
+        isDark: true,
+        init() {
+          const saved = localStorage.getItem('oo-theme');
+          this.isDark = saved !== 'light';
+          this._applyTheme();
+        },
+        toggleTheme() {
+          this.isDark = !this.isDark;
+          this._applyTheme();
+          localStorage.setItem('oo-theme', this.isDark ? 'dark' : 'light');
+        },
+        _applyTheme() {
+          document.documentElement.setAttribute('data-theme', this.isDark ? 'night' : 'light');
+          document.documentElement.classList.toggle('dark', this.isDark);
+        },
+      };
+    }
+  </script>
 </head>
-<body>
 
-<!-- ─── Nav ─────────────────────────────────────────────────────────────── -->
-<nav class="container-fluid nav-main">
-  <div class="nav-logo">
-    <span class="logo-open">OPEN</span><span class="logo-osint">OSINT</span>
-  </div>
-  <ul class="nav-links">
-    <li><a href="#features">Features</a></li>
-    <li><a href="#install">Install</a></li>
-    <li><a href="#tools">Tools</a></li>
-    <li><a href="#providers">Providers</a></li>
-    <li><a href="#docs">Docs</a></li>
-    <li>
-      <a href="https://github.com/openosint/openosint" class="nav-github" target="_blank" rel="noopener">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+<body x-data="siteState()" class="font-ibm text-[#f1f5f9] bg-[#030712] min-h-screen antialiased">
+
+  <!-- ─── Mobile Top Nav ──────────────────────────────────────────────────── -->
+  <header class="mobile-header lg:hidden">
+    <button @click="sidebarOpen = true" class="sidebar-toggle" aria-label="Open navigation">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <a href="#overview" class="mobile-logo"><span class="text-[#00ff88]">OPEN</span>OSINT</a>
+    <a href="https://github.com/openosint/openosint" target="_blank" rel="noopener" class="mobile-github">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+    </a>
+  </header>
+
+  <!-- ─── Sidebar Overlay ──────────────────────────────────────────────────── -->
+  <div
+    x-show="sidebarOpen"
+    @click="sidebarOpen = false"
+    x-transition:enter="transition-opacity duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition-opacity duration-200"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 bg-black/70 z-40 lg:hidden"
+    style="display:none"
+  ></div>
+
+  <!-- ─── Sidebar ──────────────────────────────────────────────────────────── -->
+  <aside
+    id="sidebar"
+    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+    class="sidebar fixed left-0 top-0 h-screen w-[260px] z-50 flex flex-col border-r border-[#1e293b] bg-[#080e1c] transition-transform duration-250 ease-out"
+  >
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <a href="#overview" class="flex items-center gap-2">
+        <span class="logo-mark">⊕</span>
+        <span class="font-mono font-bold text-base tracking-tight">
+          <span class="text-[#00ff88]">OPEN</span><span class="text-[#f1f5f9]">OSINT</span>
+        </span>
+      </a>
+      <span class="version-badge">v1.0.0</span>
+    </div>
+
+    <!-- Search -->
+    <div class="sidebar-search">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="docs-search" type="search" placeholder="Search docs…" autocomplete="off" />
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <a href="#overview"     class="nav-item" data-section="overview">Overview</a>
+      <a href="#installation" class="nav-item" data-section="installation">Installation</a>
+      <a href="#configuration" class="nav-item" data-section="configuration">Configuration</a>
+
+      <div class="nav-group">
+        <span class="nav-group-label">Providers</span>
+        <a href="#providers"        class="nav-item nav-sub" data-section="providers">Anthropic</a>
+        <a href="#providers-openai" class="nav-item nav-sub" data-section="providers-openai">OpenAI</a>
+        <a href="#providers-ollama" class="nav-item nav-sub" data-section="providers-ollama">Ollama</a>
+        <a href="#providers-compare" class="nav-item nav-sub" data-section="providers-compare">Comparison</a>
+      </div>
+
+      <a href="#tools"       class="nav-item" data-section="tools">Tools Reference</a>
+      <a href="#cli"         class="nav-item" data-section="cli">CLI Reference</a>
+      <a href="#python-api"  class="nav-item" data-section="python-api">Python API</a>
+      <a href="#contributing" class="nav-item" data-section="contributing">Contributing</a>
+      <a href="#changelog"   class="nav-item" data-section="changelog">Changelog</a>
+    </nav>
+
+    <!-- Sidebar footer -->
+    <div class="sidebar-footer">
+      <a href="https://github.com/openosint/openosint" target="_blank" rel="noopener" class="sidebar-github">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
         GitHub
       </a>
-    </li>
-  </ul>
-</nav>
-
-<!-- ─── Hero ─────────────────────────────────────────────────────────────── -->
-<section class="hero">
-  <div class="container hero-inner">
-    <div class="hero-badge">v1.0.0 · Open Source · MIT</div>
-    <h1 class="hero-title">
-      <span class="hero-open">OPEN</span><span class="hero-osint">OSINT</span>
-    </h1>
-    <p class="hero-tagline">
-      AI-powered intelligence gathering for security researchers,<br />
-      journalists, and investigators.
-    </p>
-    <div class="hero-terminal">
-      <div class="terminal-bar">
-        <span class="dot dot-red"></span>
-        <span class="dot dot-yellow"></span>
-        <span class="dot dot-green"></span>
-        <span class="terminal-title">openosint</span>
-      </div>
-      <pre class="terminal-body"><code id="hero-demo"></code></pre>
+      <button @click="toggleTheme()" class="theme-toggle" :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
+        <svg x-show="isDark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg x-show="!isDark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
     </div>
-    <div class="hero-actions">
-      <a href="#install" class="btn-primary">Get Started</a>
-      <a href="https://github.com/openosint/openosint" class="btn-secondary" target="_blank" rel="noopener">View on GitHub →</a>
-    </div>
-  </div>
-</section>
+  </aside>
 
-<!-- ─── Features ─────────────────────────────────────────────────────────── -->
-<section id="features" class="section">
-  <div class="container">
-    <h2 class="section-title">Why OpenOSINT?</h2>
-    <p class="section-subtitle">
-      The AI decides which tools to run and in what order.<br />
-      You just provide the target.
-    </p>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <h3>Native Tool Use</h3>
-        <p>Built on Anthropic's tool use API — no brittle JSON ReAct loops. The model autonomously chains tools and pivots on findings.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">◈</div>
-        <h3>10 OSINT Modules</h3>
-        <p>Email validation, username enumeration (17 platforms), domain WHOIS + DNS, IP geolocation, phone analysis, breach checks, metadata extraction, and Google dork generation.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">◉</div>
-        <h3>Beautiful Terminal UI</h3>
-        <p>Rich-powered interface with live tool execution, spinners, structured reports, and auto-saved Markdown files — designed to produce beautiful screenshots.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">⊕</div>
-        <h3>Multi-Provider</h3>
-        <p>Works with Anthropic (default), OpenAI, or any Ollama local model. Switch with one environment variable.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">⌕</div>
-        <h3>Zero Friction Setup</h3>
-        <p>One API key to get started. Optional integrations for HaveIBeenPwned and AbuseIPDB unlock deeper breach and reputation data.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">☏</div>
-        <h3>Interactive + One-shot</h3>
-        <p>Conversational REPL for iterative investigations, or a single <code>openosint investigate &lt;target&gt;</code> command for scripting and pipelines.</p>
-      </div>
-    </div>
-  </div>
-</section>
+  <!-- ─── Main Content ──────────────────────────────────────────────────────── -->
+  <main class="main-content lg:ml-[260px]">
 
-<!-- ─── Install ───────────────────────────────────────────────────────────── -->
-<section id="install" class="section section-alt">
-  <div class="container">
-    <h2 class="section-title">Installation</h2>
+    <!-- ══ HERO / OVERVIEW ══════════════════════════════════════════════════ -->
+    <section id="overview" class="hero-section">
+      <!-- Animated background -->
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-glow" aria-hidden="true"></div>
 
-    <div class="install-steps">
-      <div class="install-step">
-        <div class="step-num">01</div>
-        <div class="step-content">
-          <h3>Clone & install</h3>
-          <pre><code class="language-bash">git clone https://github.com/openosint/openosint
+      <div class="hero-inner">
+        <!-- Badges -->
+        <div class="hero-badges animate__animated animate__fadeInDown animate__faster">
+          <span class="hero-badge">Python 3.10+</span>
+          <span class="hero-badge">MIT License</span>
+          <span class="hero-badge hero-badge-claude">Powered by Claude</span>
+        </div>
+
+        <!-- Title -->
+        <div class="hero-title-wrap">
+          <h1 class="hero-title font-syne" id="hero-title">
+            <span class="hero-open">OPEN</span><span class="hero-osint">OSINT</span>
+          </h1>
+        </div>
+
+        <!-- Tagline -->
+        <p class="hero-tagline animate__animated animate__fadeInUp">
+          The AI-powered OSINT agent for terminal lovers.
+        </p>
+
+        <!-- CTAs -->
+        <div class="hero-cta animate__animated animate__fadeInUp animate__delay-1s">
+          <a href="#installation" class="btn-hero-primary">Get Started →</a>
+          <a href="https://github.com/openosint/openosint" target="_blank" rel="noopener" class="btn-hero-ghost">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+
+        <!-- Terminal Demo -->
+        <div class="demo-terminal animate__animated animate__fadeInUp animate__delay-1s">
+          <div class="terminal-chrome">
+            <div class="terminal-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <span class="terminal-title">openosint — zsh</span>
+            <span class="terminal-spacer"></span>
+          </div>
+          <div class="terminal-body">
+            <pre id="terminal-output" class="terminal-pre" aria-live="polite"></pre>
+            <span class="terminal-cursor" id="terminal-cursor" aria-hidden="true">█</span>
+          </div>
+        </div>
+
+        <!-- Features row -->
+        <div class="hero-features">
+          <div class="hero-feat"><span class="feat-icon">⚡</span> Native Tool Use</div>
+          <div class="hero-feat"><span class="feat-icon">◈</span> 10 OSINT Modules</div>
+          <div class="hero-feat"><span class="feat-icon">⊕</span> 3 AI Providers</div>
+          <div class="hero-feat"><span class="feat-icon">◉</span> Auto Reports</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Content wrapper ──────────────────────────────────────────────── -->
+    <div class="content-container">
+
+      <!-- ══ FEATURES ══════════════════════════════════════════════════════ -->
+      <section id="features" class="doc-section reveal-section">
+        <div class="section-label">Features</div>
+        <h2 class="section-heading font-syne">Why OpenOSINT?</h2>
+        <p class="section-lead">
+          The AI decides which tools to run and in what order. You provide the target — the agent plans, executes, and reports.
+        </p>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <h3>Native Tool Use</h3>
+            <p>Uses Anthropic's <code>stop_reason: tool_use</code> — not a brittle ReAct loop. The model natively chains tools based on findings.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </div>
+            <h3>10 OSINT Modules</h3>
+            <p>Email validation, username search across 17 platforms, WHOIS/DNS, IP geolocation, phone analysis, breach lookup, EXIF metadata, and dork generation.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <h3>Beautiful CLI</h3>
+            <p>Rich-powered terminal interface with live tool output, spinners, colored panels, and structured Markdown reports saved automatically.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h3>Interactive REPL</h3>
+            <p>Conversational investigation session — ask follow-up questions, pivot on findings, and save reports mid-session. Or use one-shot mode for scripts.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <h3>Zero Friction</h3>
+            <p>One API key to start. 8 of 10 tools work with no paid third-party APIs. Optional HaveIBeenPwned and AbuseIPDB keys add depth.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            </div>
+            <h3>Open Source</h3>
+            <p>MIT licensed. Clean architecture designed for extension — add new OSINT tools in under 50 lines. Multi-provider support built in.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ INSTALLATION ═══════════════════════════════════════════════════ -->
+      <section id="installation" class="doc-section reveal-section">
+        <div class="section-label">Installation</div>
+        <h2 class="section-heading font-syne">Get up and running</h2>
+        <p class="section-lead">OpenOSINT runs on Python 3.10+ and installs in under a minute.</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <h3>Option A — pip install</h3>
+              <div class="code-wrap">
+                <div class="code-header"><span class="code-lang-tag">bash</span><button class="copy-btn" data-copy-target>Copy</button></div>
+                <pre><code class="language-bash">pip install openosint</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">—</div>
+            <div class="step-body step-or">or</div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <h3>Option B — clone &amp; install</h3>
+              <div class="code-wrap">
+                <div class="code-header"><span class="code-lang-tag">bash</span><button class="copy-btn" data-copy-target>Copy</button></div>
+                <pre><code class="language-bash">git clone https://github.com/openosint/openosint
 cd openosint
-bash setup.sh          # creates venv, installs deps
+bash setup.sh          # creates .venv, installs deps
 source .venv/bin/activate</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <h3>Set your API key</h3>
+              <div class="code-wrap">
+                <div class="code-header"><span class="code-lang-tag">bash</span><button class="copy-btn" data-copy-target>Copy</button></div>
+                <pre><code class="language-bash">export ANTHROPIC_API_KEY=sk-ant-...
+# or add it to a .env file (copy from .env.example)</code></pre>
+              </div>
+              <p class="step-note">Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener" class="link-green">console.anthropic.com</a>. Claude Sonnet offers the best results at the lowest cost.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <h3>Run your first investigation</h3>
+              <div class="code-wrap">
+                <div class="code-header"><span class="code-lang-tag">bash</span><button class="copy-btn" data-copy-target>Copy</button></div>
+                <pre><code class="language-bash">openosint                              # interactive REPL
+openosint investigate john@example.com # one-shot
+openosint investigate example.com --save</code></pre>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div class="install-step">
-        <div class="step-num">02</div>
-        <div class="step-content">
-          <h3>Set your API key</h3>
-          <pre><code class="language-bash">export ANTHROPIC_API_KEY=sk-ant-...
-# or add to .env file (copy from .env.example)</code></pre>
-          <p class="step-note">Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>. Free tier available.</p>
+      <!-- ══ CONFIGURATION ══════════════════════════════════════════════════ -->
+      <section id="configuration" class="doc-section reveal-section">
+        <div class="section-label">Configuration</div>
+        <h2 class="section-heading font-syne">Configuration</h2>
+        <p class="section-lead">Settings are read from environment variables, a <code>.env</code> file in the working directory, or <code>~/.config/openosint/config.json</code>. Environment variables always win.</p>
+
+        <h3 class="subsection-heading">Environment variables</h3>
+        <div class="table-wrap">
+          <table class="config-table">
+            <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>ANTHROPIC_API_KEY</code></td><td class="text-[#94a3b8]">—</td><td>Required for Anthropic provider</td></tr>
+              <tr><td><code>OPENAI_API_KEY</code></td><td class="text-[#94a3b8]">—</td><td>Required for OpenAI provider</td></tr>
+              <tr><td><code>OPENOSINT_PROVIDER</code></td><td><code>anthropic</code></td><td><code>anthropic</code> · <code>openai</code> · <code>ollama</code></td></tr>
+              <tr><td><code>OPENOSINT_MODEL</code></td><td><code>claude-sonnet-4-20250514</code></td><td>Override the default model</td></tr>
+              <tr><td><code>HIBP_API_KEY</code></td><td class="text-[#94a3b8]">—</td><td>HaveIBeenPwned API key (optional)</td></tr>
+              <tr><td><code>ABUSEIPDB_API_KEY</code></td><td class="text-[#94a3b8]">—</td><td>AbuseIPDB API key (optional)</td></tr>
+              <tr><td><code>OLLAMA_BASE_URL</code></td><td><code>http://localhost:11434</code></td><td>Ollama server URL</td></tr>
+            </tbody>
+          </table>
         </div>
-      </div>
 
-      <div class="install-step">
-        <div class="step-num">03</div>
-        <div class="step-content">
-          <h3>Run your first investigation</h3>
-          <pre><code class="language-bash">openosint investigate john@example.com
-# or launch the interactive REPL
-openosint</code></pre>
+        <h3 class="subsection-heading">Config file</h3>
+        <p class="text-[#94a3b8] mb-4 text-sm">Use <code>openosint config</code> to update settings. API keys are never written to the config file — always use environment variables for secrets.</p>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang-tag">bash</span><button class="copy-btn" data-copy-target>Copy</button></div>
+          <pre><code class="language-bash">openosint config --show                    # view current config
+openosint config --provider openai         # switch provider
+openosint config --model gpt-4o           # override model</code></pre>
         </div>
-      </div>
-    </div>
 
-    <div class="install-alt">
-      <h3>Or install via pip</h3>
-      <pre><code class="language-bash">pip install openosint</code></pre>
-    </div>
-  </div>
-</section>
+        <div class="callout callout-tip">
+          <span class="callout-icon">💡</span>
+          <div>
+            <strong>Tip:</strong> Create a <code>.env</code> file in your project directory for per-project API keys. OpenOSINT uses <code>python-dotenv</code> to load it automatically.
+          </div>
+        </div>
+      </section>
 
-<!-- ─── Tools ────────────────────────────────────────────────────────────── -->
-<section id="tools" class="section">
-  <div class="container">
-    <h2 class="section-title">OSINT Tools</h2>
-    <p class="section-subtitle">
-      All tools are called autonomously by the AI. They can also be used directly via the Python API.
-    </p>
-    <div class="tools-table-wrap">
-      <table class="tools-table">
-        <thead>
-          <tr>
-            <th>Tool</th>
-            <th>Target Type</th>
-            <th>Data Sources</th>
-            <th>API Key</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>check_email</code></td>
-            <td>Email address</td>
-            <td>DNS/MX records, provider detection, disposable DB</td>
-            <td class="badge-none">None</td>
-          </tr>
-          <tr>
-            <td><code>check_username</code></td>
-            <td>Username</td>
-            <td>GitHub, Reddit, Twitter/X, Instagram, TikTok, YouTube, Twitch, +10 more</td>
-            <td class="badge-none">None</td>
-          </tr>
-          <tr>
-            <td><code>check_domain</code></td>
-            <td>Domain</td>
-            <td>WHOIS, DNS (A/MX/NS/TXT), SSL certificate, HTTP headers</td>
-            <td class="badge-none">None</td>
-          </tr>
-          <tr>
-            <td><code>check_ip</code></td>
-            <td>IP address</td>
-            <td>ip-api.com geolocation, reverse DNS, AbuseIPDB (optional)</td>
-            <td class="badge-optional">Optional</td>
-          </tr>
-          <tr>
-            <td><code>check_phone</code></td>
-            <td>Phone number</td>
-            <td>libphonenumber — country, carrier, line type</td>
-            <td class="badge-none">None</td>
-          </tr>
-          <tr>
-            <td><code>check_breach</code></td>
-            <td>Email address</td>
-            <td>HaveIBeenPwned v3 — breaches and pastes</td>
-            <td class="badge-required">Required</td>
-          </tr>
-          <tr>
-            <td><code>check_metadata</code></td>
-            <td>Image URL</td>
-            <td>EXIF data — GPS, camera, timestamps</td>
-            <td class="badge-none">None</td>
-          </tr>
-          <tr>
-            <td><code>generate_dorks</code></td>
-            <td>Any</td>
-            <td>Generated Google/Bing dork queries (no API call)</td>
-            <td class="badge-none">None</td>
-          </tr>
-          <tr>
-            <td><code>dns_lookup</code></td>
-            <td>Domain</td>
-            <td>DNS resolver — A, AAAA, MX, NS, TXT, CNAME, SOA, PTR</td>
-            <td class="badge-none">None</td>
-          </tr>
-          <tr>
-            <td><code>whois_lookup</code></td>
-            <td>Domain / IP</td>
-            <td>WHOIS — registrar, dates, nameservers, registrant</td>
-            <td class="badge-none">None</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
+      <!-- ══ PROVIDERS ═════════════════════════════════════════════════════ -->
+      <section id="providers" class="doc-section reveal-section">
+        <div class="section-label">Providers</div>
+        <h2 class="section-heading font-syne">AI Providers</h2>
+        <p class="section-lead">Swap AI providers with a single environment variable. Anthropic gives the best OSINT results; Ollama is free and runs locally.</p>
 
-<!-- ─── Providers ─────────────────────────────────────────────────────────── -->
-<section id="providers" class="section section-alt">
-  <div class="container">
-    <h2 class="section-title">AI Providers</h2>
-    <p class="section-subtitle">Swap providers with a single environment variable.</p>
-    <div class="providers-grid">
-      <div class="provider-card provider-default">
-        <div class="provider-badge">Default</div>
-        <h3>Anthropic</h3>
-        <p>Best results. Uses Claude's native tool use API with <code>stop_reason: tool_use</code> — no prompt engineering needed.</p>
-        <pre><code class="language-bash">export ANTHROPIC_API_KEY=sk-ant-...
-export OPENOSINT_MODEL=claude-sonnet-4-20250514</code></pre>
-      </div>
-      <div class="provider-card">
-        <h3>OpenAI</h3>
-        <p>Compatible with GPT-4o and later models via the OpenAI function calling API.</p>
-        <pre><code class="language-bash">export OPENAI_API_KEY=sk-...
-export OPENOSINT_PROVIDER=openai</code></pre>
-      </div>
-      <div class="provider-card">
-        <h3>Ollama</h3>
-        <p>Run locally with any Ollama model that supports function calling (llama3.1, qwen2.5, etc.). No API costs.</p>
-        <pre><code class="language-bash">export OPENOSINT_PROVIDER=ollama
-export OPENOSINT_MODEL=llama3.1
-export OLLAMA_BASE_URL=http://localhost:11434</code></pre>
-      </div>
-    </div>
-  </div>
-</section>
+        <div class="providers-grid">
+          <!-- Anthropic -->
+          <div id="providers" class="provider-card provider-featured">
+            <div class="provider-badge-wrap">
+              <span class="provider-badge">Default</span>
+              <span class="provider-badge provider-badge-best">Best Quality</span>
+            </div>
+            <h3 class="provider-name">Anthropic</h3>
+            <p class="provider-desc">Uses Claude's native <code>stop_reason: tool_use</code> API — no prompt engineering needed. The model genuinely understands investigation strategy and chains tools intelligently.</p>
+            <div class="code-wrap mt-4">
+              <div class="code-header"><span class="code-lang-tag">bash</span><button class="copy-btn" data-copy-target>Copy</button></div>
+              <pre><code class="language-bash">export ANTHROPIC_API_KEY=sk-ant-...
+# Default model: claude-sonnet-4-20250514
+# Best balance of speed and quality</code></pre>
+            </div>
+          </div>
 
-<!-- ─── CLI Docs ───────────────────────────────────────────────────────────── -->
-<section id="docs" class="section">
-  <div class="container">
-    <h2 class="section-title">CLI Reference</h2>
+          <!-- OpenAI -->
+          <div id="providers-openai" class="provider-card">
+            <h3 class="provider-name">OpenAI</h3>
+            <p class="provider-desc">Compatible with GPT-4o and later models via the OpenAI function calling API. Good alternative when you already have an OpenAI subscription.</p>
+            <div class="code-wrap mt-4">
+              <div class="code-header"><span class="code-lang-tag">bash</span><button class="copy-btn" data-copy-target>Copy</button></div>
+              <pre><code class="language-bash">export OPENAI_API_KEY=sk-...
+export OPENOSINT_PROVIDER=openai
+# Default model: gpt-4o</code></pre>
+            </div>
+          </div>
 
-    <div class="docs-grid">
-      <div class="doc-block">
-        <h3>Interactive Mode</h3>
-        <pre><code class="language-bash">openosint</code></pre>
-        <p>Launches the interactive REPL. Type any target to start an investigation. The agent maintains conversation context across messages.</p>
-        <pre><code class="language-text">openosint ❯ john.doe@gmail.com
+          <!-- Ollama -->
+          <div id="providers-ollama" class="provider-card">
+            <h3 class="provider-name">Ollama <span class="text-sm font-normal text-[#94a3b8]">Local · Free</span></h3>
+            <p class="provider-desc">Run any Ollama model that supports function calling (llama3.1, qwen2.5, mistral-nemo). No API costs, full privacy — perfect for sensitive investigations.</p>
+            <div class="code-wrap mt-4">
+              <div class="code-header"><span class="code-lang-tag">bash</span><button class="copy-btn" data-copy-target>Copy</button></div>
+              <pre><code class="language-bash">ollama pull llama3.1
+export OPENOSINT_PROVIDER=ollama
+export OPENOSINT_MODEL=llama3.1</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comparison table -->
+        <h3 id="providers-compare" class="subsection-heading mt-10">Provider comparison</h3>
+        <div class="table-wrap">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th class="text-[#00ff88]">Anthropic ⭐</th>
+                <th>OpenAI</th>
+                <th>Ollama</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Tool use quality</td><td class="text-[#00ff88]">★★★★★</td><td>★★★★</td><td>★★★</td></tr>
+              <tr><td>Investigation depth</td><td class="text-[#00ff88]">Best</td><td>Very good</td><td>Model-dependent</td></tr>
+              <tr><td>Native tool use API</td><td>✓ <span class="text-[#94a3b8] text-xs">stop_reason</span></td><td>✓ <span class="text-[#94a3b8] text-xs">function_call</span></td><td>~ Varies</td></tr>
+              <tr><td>API cost</td><td>Paid</td><td>Paid</td><td class="text-[#00ff88]">Free</td></tr>
+              <tr><td>Privacy</td><td>Good</td><td>Good</td><td class="text-[#00ff88]">Best (local)</td></tr>
+              <tr><td>Speed</td><td>Fast</td><td>Fast</td><td>Hardware-limited</td></tr>
+              <tr><td>Recommended model</td><td><code>claude-sonnet-4-20250514</code></td><td><code>gpt-4o</code></td><td><code>llama3.1</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ══ TOOLS REFERENCE ════════════════════════════════════════════════ -->
+      <section id="tools" class="doc-section reveal-section">
+        <div class="section-label">Tools Reference</div>
+        <h2 class="section-heading font-syne">OSINT Tools</h2>
+        <p class="section-lead">All 10 tools are invoked autonomously by the AI agent. They can also be used directly via the Python API.</p>
+
+        <div class="table-wrap">
+          <table class="tools-table">
+            <thead>
+              <tr>
+                <th>Tool</th>
+                <th>Target</th>
+                <th>Data Sources</th>
+                <th>API Key</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>check_email</code></td>
+                <td>Email</td>
+                <td>DNS/MX · provider detection · disposable DB</td>
+                <td><span class="badge-free">Free</span></td>
+              </tr>
+              <tr>
+                <td><code>check_username</code></td>
+                <td>Username</td>
+                <td>GitHub · Reddit · Twitter/X · Instagram · TikTok · YouTube · Twitch · +10</td>
+                <td><span class="badge-free">Free</span></td>
+              </tr>
+              <tr>
+                <td><code>check_domain</code></td>
+                <td>Domain</td>
+                <td>WHOIS · DNS (A/MX/NS/TXT) · SSL cert · HTTP headers</td>
+                <td><span class="badge-free">Free</span></td>
+              </tr>
+              <tr>
+                <td><code>check_ip</code></td>
+                <td>IP address</td>
+                <td>ip-api.com · reverse DNS · AbuseIPDB (opt.)</td>
+                <td><span class="badge-optional">Optional</span></td>
+              </tr>
+              <tr>
+                <td><code>check_phone</code></td>
+                <td>Phone</td>
+                <td>libphonenumber · country · carrier · line type</td>
+                <td><span class="badge-free">Free</span></td>
+              </tr>
+              <tr>
+                <td><code>check_breach</code></td>
+                <td>Email</td>
+                <td>HaveIBeenPwned v3 · breaches + pastes</td>
+                <td><span class="badge-required">HIBP key</span></td>
+              </tr>
+              <tr>
+                <td><code>check_metadata</code></td>
+                <td>Image URL</td>
+                <td>EXIF · GPS coordinates · camera model · timestamps</td>
+                <td><span class="badge-free">Free</span></td>
+              </tr>
+              <tr>
+                <td><code>generate_dorks</code></td>
+                <td>Any</td>
+                <td>Google/Bing dork generation (no external API)</td>
+                <td><span class="badge-free">Free</span></td>
+              </tr>
+              <tr>
+                <td><code>dns_lookup</code></td>
+                <td>Domain</td>
+                <td>A · AAAA · MX · NS · TXT · CNAME · SOA · PTR</td>
+                <td><span class="badge-free">Free</span></td>
+              </tr>
+              <tr>
+                <td><code>whois_lookup</code></td>
+                <td>Domain / IP</td>
+                <td>WHOIS · registrar · dates · nameservers</td>
+                <td><span class="badge-free">Free</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-info mt-8">
+          <span class="callout-icon">ℹ</span>
+          <div>Get HaveIBeenPwned access at <a href="https://haveibeenpwned.com/API/Key" target="_blank" rel="noopener" class="link-green">haveibeenpwned.com/API/Key</a> ($3.50/month). AbuseIPDB has a free tier at <a href="https://www.abuseipdb.com/api" target="_blank" rel="noopener" class="link-green">abuseipdb.com/api</a>.</div>
+        </div>
+      </section>
+
+      <!-- ══ CLI REFERENCE ══════════════════════════════════════════════════ -->
+      <section id="cli" class="doc-section reveal-section">
+        <div class="section-label">CLI Reference</div>
+        <h2 class="section-heading font-syne">CLI Reference</h2>
+
+        <h3 class="subsection-heading">Interactive mode</h3>
+        <p class="text-[#94a3b8] mb-4 text-sm">Launch with no arguments. The agent maintains conversation context — ask follow-up questions after an investigation.</p>
+        <div class="code-wrap terminal-style">
+          <div class="code-header terminal-chrome-small">
+            <span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span>
+            <span class="code-lang-tag ml-2">terminal</span>
+            <button class="copy-btn" data-copy-target>Copy</button>
+          </div>
+          <pre><code class="language-bash">openosint
+
+openosint ❯ john.doe@gmail.com
 openosint ❯ What about related domains?
 openosint ❯ save
 openosint ❯ quit</code></pre>
-      </div>
+        </div>
 
-      <div class="doc-block">
-        <h3>One-Shot Investigation</h3>
-        <pre><code class="language-bash">openosint investigate &lt;target&gt; [--save] [--output FILE]</code></pre>
-        <p>Ideal for scripts and pipelines. Outputs the report to stdout and optionally saves to a Markdown file.</p>
-        <pre><code class="language-bash">openosint investigate 8.8.8.8
+        <h3 class="subsection-heading mt-8">Interactive commands</h3>
+        <div class="table-wrap">
+          <table class="config-table">
+            <thead><tr><th>Command</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>&lt;target&gt;</code></td><td>Start an investigation on any target</td></tr>
+              <tr><td><code>investigate &lt;target&gt;</code></td><td>Explicit investigation</td></tr>
+              <tr><td><code>clear</code></td><td>Reset conversation history</td></tr>
+              <tr><td><code>save</code></td><td>Save last report to <code>reports/</code></td></tr>
+              <tr><td><code>help</code></td><td>Show available commands</td></tr>
+              <tr><td><code>quit</code> / <code>exit</code></td><td>Exit</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="subsection-heading mt-8">One-shot investigation</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang-tag">bash</span><button class="copy-btn" data-copy-target>Copy</button></div>
+          <pre><code class="language-bash">openosint investigate &lt;target&gt; [OPTIONS]
+
+Options:
+  -s, --save         Save report to reports/ directory
+  -o, --output PATH  Save to specific file path
+  -q, --quiet        Suppress banner (clean pipe output)
+  -h, --help         Show help</code></pre>
+        </div>
+
+        <div class="code-wrap mt-4">
+          <div class="code-header"><span class="code-lang-tag">bash</span><button class="copy-btn" data-copy-target>Copy</button></div>
+          <pre><code class="language-bash"># Examples
+openosint investigate john@example.com
 openosint investigate example.com --save
-openosint investigate user@corp.com --output report.md</code></pre>
-      </div>
+openosint investigate 8.8.8.8 --output /tmp/report.md
+openosint investigate "@johndoe" --quiet | grep "Account Discovery" -A 20</code></pre>
+        </div>
 
-      <div class="doc-block">
-        <h3>Configuration</h3>
-        <pre><code class="language-bash">openosint config --show
-openosint config --provider anthropic
-openosint config --model claude-opus-4-5</code></pre>
-        <p>Settings are stored in <code>~/.config/openosint/config.json</code>. Environment variables always override saved settings.</p>
-      </div>
+        <h3 class="subsection-heading mt-8">Configuration command</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang-tag">bash</span><button class="copy-btn" data-copy-target>Copy</button></div>
+          <pre><code class="language-bash">openosint config [OPTIONS]
 
-      <div class="doc-block">
-        <h3>Python API</h3>
-        <pre><code class="language-python">from openosint.config import Config
+Options:
+  --show             Show current configuration
+  --provider TEXT    Set AI provider (anthropic|openai|ollama)
+  --model TEXT       Override default model</code></pre>
+        </div>
+      </section>
+
+      <!-- ══ PYTHON API ═════════════════════════════════════════════════════ -->
+      <section id="python-api" class="doc-section reveal-section">
+        <div class="section-label">Python API</div>
+        <h2 class="section-heading font-syne">Python API</h2>
+        <p class="section-lead">Use OpenOSINT as a Python library. All components are importable and testable independently.</p>
+
+        <h3 class="subsection-heading">Agent API</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang-tag">python</span><button class="copy-btn" data-copy-target>Copy</button></div>
+          <pre><code class="language-python">from openosint.config import Config
 from openosint.display import Display
 from openosint.agent import OpenOSINTAgent
 
-config = Config.load()
-display = Display(quiet=True)
+config = Config.load()             # reads .env + env vars
+display = Display(quiet=True)      # suppress banner for library use
 agent = OpenOSINTAgent(config, display)
 
+# One-shot investigation
 report = agent.investigate("example.com")
-print(report)</code></pre>
-      </div>
-    </div>
-  </div>
-</section>
+print(report)
 
-<!-- ─── Ethics ────────────────────────────────────────────────────────────── -->
-<section class="section section-alt">
-  <div class="container ethics-section">
-    <h2 class="section-title">Responsible Use</h2>
-    <div class="ethics-grid">
-      <div class="ethics-item ethics-do">
-        <h4>✓ Intended for</h4>
-        <ul>
-          <li>Security research and penetration testing (with authorization)</li>
-          <li>Investigative journalism on matters of public interest</li>
-          <li>Digital forensics and incident response</li>
-          <li>CTF challenges and security education</li>
-          <li>Verifying your own digital footprint</li>
-        </ul>
-      </div>
-      <div class="ethics-item ethics-dont">
-        <h4>✗ Not for</h4>
-        <ul>
-          <li>Stalking, harassment, or doxing</li>
-          <li>Unauthorized surveillance of individuals</li>
-          <li>Activities violating GDPR, CCPA, or applicable privacy law</li>
-          <li>Automated mass harvesting of personal data</li>
-        </ul>
-      </div>
-    </div>
-    <p class="ethics-note">
-      OpenOSINT only queries publicly available data sources. Users are solely responsible for
-      ensuring their use complies with applicable laws and regulations.
-    </p>
-  </div>
-</section>
+# Multi-turn investigation
+agent.investigate("john@example.com")
+follow_up = agent.chat("What about related domains?")
 
-<!-- ─── Footer ───────────────────────────────────────────────────────────── -->
-<footer class="site-footer">
-  <div class="container footer-inner">
-    <div class="footer-logo">
-      <span class="logo-open">OPEN</span><span class="logo-osint">OSINT</span>
-    </div>
-    <div class="footer-links">
-      <a href="https://github.com/openosint/openosint" target="_blank" rel="noopener">GitHub</a>
-      <a href="https://github.com/openosint/openosint/issues" target="_blank" rel="noopener">Issues</a>
-      <a href="https://github.com/openosint/openosint/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
-    </div>
-    <div class="footer-meta">
-      Built with <a href="https://www.anthropic.com" target="_blank" rel="noopener">Anthropic</a> ·
-      <a href="https://picocss.com" target="_blank" rel="noopener">Pico.css</a>
-    </div>
-  </div>
-</footer>
+# Save report to file
+path = agent.save_report(report, "example.com")
+print(f"Saved to {path}")</code></pre>
+        </div>
 
-<!-- Prism.js -->
-<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
-<script src="script.js"></script>
+        <h3 class="subsection-heading mt-8">Direct tool usage</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang-tag">python</span><button class="copy-btn" data-copy-target>Copy</button></div>
+          <pre><code class="language-python">from openosint.tools.email_tools import check_email
+from openosint.tools.domain_tools import check_domain
+from openosint.tools.username_tools import check_username
+from openosint.tools.ip_tools import check_ip
+
+# Email intelligence
+result = check_email("user@example.com")
+print(result["valid"])           # True/False
+print(result["provider"])        # "Google" / "Microsoft" / ...
+print(result["mx_records"])      # list of MX records
+print(result["username_variants"])  # ["user", "userexample", ...]
+
+# Domain intelligence
+domain = check_domain("example.com")
+print(domain["ssl"]["issuer"])   # SSL certificate issuer
+print(domain["dns"]["TXT"])      # TXT records (SPF, DMARC, etc.)
+print(domain["http_headers"])    # interesting response headers
+
+# Username across platforms (returns found URLs)
+usernames = check_username("johndoe")
+for found in usernames["found"]:
+    print(f"{found['platform']}: {found['url']}")</code></pre>
+        </div>
+      </section>
+
+      <!-- ══ CONTRIBUTING ═══════════════════════════════════════════════════ -->
+      <section id="contributing" class="doc-section reveal-section">
+        <div class="section-label">Contributing</div>
+        <h2 class="section-heading font-syne">Contributing</h2>
+        <p class="section-lead">Contributions are welcome. The most impactful contributions are new OSINT tools and platform support for the username checker.</p>
+
+        <h3 class="subsection-heading">Adding a new OSINT tool</h3>
+        <p class="text-[#94a3b8] text-sm mb-4">Each tool is a Python function that accepts named parameters and returns a <code>dict[str, Any]</code> with a <code>status</code> key.</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h3>Create the tool module</h3>
+              <div class="code-wrap">
+                <div class="code-header"><span class="code-lang-tag">python</span><button class="copy-btn" data-copy-target>Copy</button></div>
+                <pre><code class="language-python"># openosint/tools/my_tool.py
+from typing import Any
+
+def my_tool(target: str) -> dict[str, Any]:
+    """Investigate something about target."""
+    return {
+        "status": "ok",
+        "target": target,
+        # ... your findings
+    }</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h3>Register in registry.py</h3>
+              <p class="text-[#94a3b8] text-sm mb-3">Add to <code>TOOL_DEFINITIONS</code> and the <code>execute_tool()</code> dispatcher in <code>openosint/tools/registry.py</code>.</p>
+              <div class="code-wrap">
+                <div class="code-header"><span class="code-lang-tag">python</span><button class="copy-btn" data-copy-target>Copy</button></div>
+                <pre><code class="language-python"># In TOOL_DEFINITIONS list:
+{
+    "name": "my_tool",
+    "description": "Clear description of what this investigates.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "target": {"type": "string", "description": "..."}
+        },
+        "required": ["target"],
+    },
+},
+
+# In execute_tool():
+elif name == "my_tool":
+    from .my_tool import my_tool
+    return my_tool(inputs["target"])</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <h3>Add icon and tests</h3>
+              <p class="text-[#94a3b8] text-sm">Add an icon to <code>TOOL_ICONS</code> in <code>display.py</code> and write unit tests in <code>tests/test_tools.py</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-tip mt-8">
+          <span class="callout-icon">💡</span>
+          <div>
+            <strong>Guidelines:</strong> Tools should return <code>{"status": "error", "error": "..."}</code> on failure, never raise exceptions. Include a <code>"notes"</code> list for advisory messages. Always handle network timeouts gracefully.
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ CHANGELOG ══════════════════════════════════════════════════════ -->
+      <section id="changelog" class="doc-section reveal-section">
+        <div class="section-label">Changelog</div>
+        <h2 class="section-heading font-syne">Changelog</h2>
+
+        <div class="changelog-entry">
+          <div class="changelog-version">
+            <span class="version-pill">v1.0.0</span>
+            <span class="changelog-date">May 2025</span>
+          </div>
+          <ul class="changelog-list">
+            <li>Initial release</li>
+            <li>Native Anthropic tool use loop (<code>stop_reason: tool_use</code>)</li>
+            <li>10 OSINT modules: email, username (17 platforms), domain, IP, phone, breach, EXIF metadata, dork generation, DNS, WHOIS</li>
+            <li>Multi-provider: Anthropic (default), OpenAI, Ollama</li>
+            <li>Interactive REPL + one-shot <code>investigate</code> command</li>
+            <li>Auto-saved Markdown reports</li>
+            <li>Rich terminal UI with live tool output</li>
+            <li>Documentation site</li>
+          </ul>
+        </div>
+
+        <div class="changelog-entry">
+          <div class="changelog-version">
+            <span class="version-pill version-pill-upcoming">Upcoming</span>
+          </div>
+          <ul class="changelog-list changelog-upcoming">
+            <li>Async parallel tool execution</li>
+            <li>Report templates (executive, technical, journalist)</li>
+            <li>Plugin system for custom tools</li>
+            <li>OSINT result caching layer</li>
+            <li>Shodan and Censys integration</li>
+          </ul>
+        </div>
+      </section>
+
+    </div><!-- /content-container -->
+
+    <!-- ─── Footer ───────────────────────────────────────────────────────── -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="font-mono font-bold text-sm">
+            <span class="text-[#00ff88]">OPEN</span><span>OSINT</span>
+          </span>
+          <span class="footer-version">v1.0.0</span>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/openosint/openosint" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/openosint/openosint/issues" target="_blank" rel="noopener">Issues</a>
+          <a href="https://github.com/openosint/openosint/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+        </div>
+        <div class="footer-built">
+          Built with
+          <a href="https://anthropic.com" target="_blank" rel="noopener" class="link-green">Claude</a>
+          ·
+          <a href="https://github.com/Textualize/rich" target="_blank" rel="noopener" class="link-green">Rich</a>
+        </div>
+      </div>
+    </footer>
+
+  </main><!-- /main-content -->
+
+  <!-- ─── Scripts ──────────────────────────────────────────────────────────── -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/splitting@1.0.6/dist/splitting.min.js"></script>
+  <script defer src="docs.js"></script>
 </body>
 </html>
