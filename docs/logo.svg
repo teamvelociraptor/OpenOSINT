@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 290 64" fill="none" role="img" aria-label="OpenOSINT">
+  <style>
+    .oo-osint { fill: #0f172a; }
+    @media (prefers-color-scheme: dark) {
+      .oo-osint { fill: #f1f5f9; }
+    }
+  </style>
+  <!-- Icon: magnifying glass with >_ terminal prompt -->
+  <circle cx="25" cy="25" r="19" stroke="#00ff88" stroke-width="3.5"/>
+  <line x1="39" y1="39" x2="57" y2="57" stroke="#00ff88" stroke-width="5" stroke-linecap="round"/>
+  <polyline points="11,19 18,25 11,31" stroke="#00ff88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="22" y="29" width="12" height="3.5" rx="1.5" fill="#00ff88"/>
+  <!-- Wordmark -->
+  <text
+    x="72" y="41"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Arial, sans-serif"
+    font-weight="800"
+    font-size="30"
+    letter-spacing="-1"
+    fill="#00ff88"
+  >OPEN</text>
+  <text
+    x="168" y="41"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Arial, sans-serif"
+    font-weight="800"
+    font-size="30"
+    letter-spacing="-1"
+    class="oo-osint"
+  >OSINT</text>
+</svg>

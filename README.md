@@ -1,21 +1,35 @@
-# OpenOSINT
+<div align="center">
+
+<img src="docs/logo.svg" alt="OpenOSINT" width="300">
 
 **AI-powered Open Source Intelligence agent for security researchers, journalists, and investigators.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue)](https://python.org)
 [![Powered by Claude](https://img.shields.io/badge/Powered%20by-Claude-orange)](https://anthropic.com)
+[![CI](https://img.shields.io/github/actions/workflow/status/openosint/openosint/ci.yml?label=CI)](https://github.com/openosint/openosint/actions)
 
-```
- ██████╗ ██████╗ ███████╗███╗   ██╗ ██████╗ ███████╗██╗███╗   ██╗████████╗
-██╔═══██╗██╔══██╗██╔════╝████╗  ██║██╔═══██╗██╔════╝██║████╗  ██║╚══██╔══╝
-██║   ██║██████╔╝█████╗  ██╔██╗ ██║██║   ██║███████╗██║██╔██╗ ██║   ██║
-██║   ██║██╔═══╝ ██╔══╝  ██║╚██╗██║██║   ██║╚════██║██║██║╚██╗██║   ██║
-╚██████╔╝██║     ███████╗██║ ╚████║╚██████╔╝███████║██║██║ ╚████║   ██║
- ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝╚═╝  ╚═══╝   ╚═╝
-```
+</div>
 
 OpenOSINT is a conversational CLI that uses Claude's native tool-use API to autonomously decide which OSINT tools to run, in what order, and how to chain findings — then compiles a structured intelligence report. You provide the target; the AI does the investigation.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [OSINT Tools](#osint-tools)
+- [CLI Reference](#cli-reference)
+- [Providers](#providers)
+- [Optional API Keys](#optional-api-keys)
+- [Python API](#python-api)
+- [Architecture](#architecture)
+- [Configuration](#configuration)
+- [Responsible Use](#responsible-use)
+- [Contributing](#contributing)
+- [What's New](#whats-new)
+- [License](#license)
 
 ---
 
@@ -285,6 +299,33 @@ Contributions are welcome. To add a new OSINT tool:
 4. Add the icon to `TOOL_ICONS` in `display.py`
 
 See existing tools for the expected return schema pattern.
+
+Please open an issue first for large changes. For bugs, use the [issue tracker](https://github.com/openosint/openosint/issues).
+
+---
+
+## What's New
+
+### v1.0.0 — May 2025
+
+- **Initial release** — complete OSINT agent with native Claude tool use
+- 10 OSINT modules: email, username search (17 platforms), domain, IP, phone, breach data, image EXIF, dork generation, DNS, WHOIS
+- Multi-provider: Anthropic (default), OpenAI, Ollama
+- Interactive REPL and one-shot `investigate` command
+- Auto-saved Markdown reports in `reports/` directory
+- Beautiful Rich-powered terminal UI with live tool output
+- Full documentation site
+
+---
+
+## Contributors
+
+<!-- prettier-ignore -->
+| Contributor | Role |
+|-------------|------|
+| [JustSouichi](https://github.com/JustSouichi) | Author & maintainer |
+
+Contributions via pull request are welcome — see [Contributing](#contributing).
 
 ---
 

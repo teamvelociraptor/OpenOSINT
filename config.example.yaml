@@ -1,0 +1,30 @@
+# OpenOSINT Configuration Example
+# Copy this file to .env or export variables in your shell.
+# API keys are NEVER stored in config.json — always use env vars or .env.
+#
+# Required (one of):
+#   ANTHROPIC_API_KEY=sk-ant-...
+#   OPENAI_API_KEY=sk-...
+#
+# Optional enrichment APIs:
+#   HIBP_API_KEY=...            # HaveIBeenPwned - breach/paste checking ($3.50/mo)
+#   ABUSEIPDB_API_KEY=...       # AbuseIPDB - IP reputation scoring (free tier)
+#
+# Provider selection (default: anthropic):
+#   OPENOSINT_PROVIDER=anthropic     # anthropic | openai | ollama
+#   OPENOSINT_MODEL=claude-sonnet-4-20250514
+#
+# Ollama (local LLM, no API cost):
+#   OPENOSINT_PROVIDER=ollama
+#   OPENOSINT_MODEL=llama3.1         # or qwen2.5, mistral, etc.
+#   OLLAMA_BASE_URL=http://localhost:11434
+
+# ─── Persistent settings (stored in ~/.config/openosint/config.json) ───────
+#
+# provider: anthropic          # anthropic | openai | ollama
+# model: claude-sonnet-4-20250514
+# ollama_base_url: http://localhost:11434
+# max_tokens: 8192
+# max_iterations: 25
+# save_reports: true
+# reports_dir: reports
