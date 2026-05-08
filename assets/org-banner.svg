@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500" width="1500" height="500">
+  <defs>
+    <pattern id="grid" x="0" y="0" width="52" height="52" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="52" y2="0" stroke="rgba(0,255,136,0.04)" stroke-width="0.75"/>
+      <line x1="0" y1="0" x2="0" y2="52" stroke="rgba(0,255,136,0.04)" stroke-width="0.75"/>
+    </pattern>
+    <radialGradient id="leftGlow" cx="25%" cy="50%" r="45%">
+      <stop offset="0%" stop-color="#00ff88" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#030712" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="rightGlow" cx="85%" cy="50%" r="40%">
+      <stop offset="0%" stop-color="#00ff88" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#030712" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fadeEdgeL" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#030712" stop-opacity="0.8"/>
+      <stop offset="15%" stop-color="#030712" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fadeEdgeR" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="85%" stop-color="#030712" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#030712" stop-opacity="0.8"/>
+    </linearGradient>
+    <filter id="iconGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1500" height="500" fill="#030712"/>
+
+  <!-- Grid -->
+  <rect width="1500" height="500" fill="url(#grid)"/>
+
+  <!-- Depth gradients -->
+  <rect width="1500" height="500" fill="url(#leftGlow)"/>
+  <rect width="1500" height="500" fill="url(#rightGlow)"/>
+
+  <!-- Edge fades -->
+  <rect width="1500" height="500" fill="url(#fadeEdgeL)"/>
+  <rect width="1500" height="500" fill="url(#fadeEdgeR)"/>
+
+  <!-- ═══ Icon — left side, centered at ~220,245, scale 3.2 (~205px) ═══ -->
+  <!-- translate = 220 - 32*3.2, 245 - 32*3.2 = 220-102.4, 245-102.4 = 117.6, 142.6 -->
+  <g transform="translate(117,143) scale(3.2)" fill="none" filter="url(#iconGlow)">
+    <circle cx="25" cy="25" r="19" fill="rgba(0,255,136,0.06)"/>
+    <circle cx="25" cy="25" r="19" stroke="#00ff88" stroke-width="3"/>
+    <line x1="39" y1="39" x2="57" y2="57" stroke="#00ff88" stroke-width="5" stroke-linecap="round"/>
+    <polyline points="11,19 18,25 11,31" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="22" y="29" width="12" height="3.5" rx="1.5" fill="#00ff88"/>
+  </g>
+
+  <!-- Vertical divider after icon -->
+  <line x1="360" y1="120" x2="360" y2="380" stroke="rgba(0,255,136,0.15)" stroke-width="1"/>
+
+  <!-- ═══ Wordmark + tagline ═══ -->
+
+  <!-- OPEN in green -->
+  <text x="400" y="248"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="128"
+    font-weight="900"
+    fill="#00ff88"
+    letter-spacing="-3">OPEN</text>
+
+  <!-- OSINT continues inline — x offset from OPEN -->
+  <!-- "OPEN" at 128px ≈ 4 chars × ~85px = 340px → OSINT starts at 400+340 = 740 -->
+  <text x="740" y="248"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="128"
+    font-weight="900"
+    fill="#f1f5f9"
+    letter-spacing="-3">OSINT</text>
+
+  <!-- Accent underline -->
+  <rect x="400" y="268" width="740" height="3" rx="2" fill="#00ff88" opacity="0.4"/>
+
+  <!-- Tagline -->
+  <text x="400" y="330"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-size="26"
+    font-weight="300"
+    fill="#64748b"
+    letter-spacing="0.5">Open source AI-powered security research tools</text>
+
+  <!-- Sub-label -->
+  <text x="400" y="380"
+    font-family="'Courier New', Courier, monospace"
+    font-size="13"
+    font-weight="600"
+    fill="#00ff88"
+    letter-spacing="3"
+    opacity="0.6">OSINT · INTELLIGENCE · RESEARCH</text>
+
+  <!-- Bottom accent bar -->
+  <rect x="0" y="494" width="1500" height="2" fill="#00ff88" opacity="0.1"/>
+  <rect x="400" y="494" width="740" height="2" fill="#00ff88" opacity="0.25"/>
+</svg>

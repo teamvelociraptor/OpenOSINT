@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from .email_tools import check_email
-from .username_tools import check_username
-from .domain_tools import check_domain
-from .ip_tools import check_ip
-from .phone_tools import check_phone
 from .breach_tools import check_breach
-from .metadata_tools import check_metadata
-from .dork_tools import generate_dorks
 from .dns_tools import dns_lookup, whois_lookup
+from .domain_tools import check_domain
+from .dork_tools import generate_dorks
+from .email_tools import check_email
+from .ip_tools import check_ip
+from .metadata_tools import check_metadata
+from .phone_tools import check_phone
+from .username_tools import check_username
 
 TOOL_DEFINITIONS: list[dict[str, Any]] = [
     {
@@ -64,7 +64,10 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
             "properties": {
                 "domain": {
                     "type": "string",
-                    "description": "The domain name to investigate (e.g. example.com — no http:// prefix needed)",
+                    "description": (
+                        "The domain name to investigate "
+                        "(e.g. example.com — no http:// prefix needed)"
+                    ),
                 }
             },
             "required": ["domain"],
@@ -100,7 +103,10 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
             "properties": {
                 "phone": {
                     "type": "string",
-                    "description": "Phone number in any format (e.g. +1 555 555 5555, +393331234567)",
+                    "description": (
+                        "Phone number in any format "
+                        "(e.g. +1 555 555 5555, +393331234567)"
+                    ),
                 }
             },
             "required": ["phone"],

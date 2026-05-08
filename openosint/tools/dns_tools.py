@@ -4,11 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
+import dns.exception
 import dns.resolver
 import dns.reversename
-import dns.exception
 import whois
-
 
 VALID_RECORD_TYPES = {"A", "AAAA", "MX", "NS", "TXT", "CNAME", "SOA", "PTR"}
 
@@ -19,7 +18,10 @@ def dns_lookup(domain: str, record_type: str) -> dict[str, Any]:
     if record_type not in VALID_RECORD_TYPES:
         return {
             "status": "error",
-            "error": f"Invalid record type '{record_type}'. Valid: {', '.join(sorted(VALID_RECORD_TYPES))}",
+            "error": (
+                f"Invalid record type '{record_type}'. "
+                f"Valid: {', '.join(sorted(VALID_RECORD_TYPES))}"
+            ),
         }
 
     result: dict[str, Any] = {
@@ -125,7 +127,13 @@ def whois_lookup(target: str) -> dict[str, Any]:
         result["registrant_name"] = str(w.name) if w.name else None
         result["registrant_org"] = str(w.org) if w.org else None
         result["registrant_country"] = str(w.country) if w.country else None
-        result["admin_email"] = str(w.emails[0]) if isinstance(w.emails, list) and w.emails else str(w.emails) if w.emails else None
+        result["admin_email"] = (
+            str(w.emails[0])
+            if isinstance(w.emails, list) and w.emails
+            else str(w.emails)
+            if w.emails
+            else None
+        )
 
         if hasattr(w, "status"):
             status = w.status

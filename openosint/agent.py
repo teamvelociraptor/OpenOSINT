@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import json
-import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import anthropic
 
@@ -14,24 +13,29 @@ from .config import Config
 from .display import Display
 from .tools.registry import TOOL_DEFINITIONS, execute_tool
 
-SYSTEM_PROMPT = """You are OpenOSINT, an elite AI-powered Open Source Intelligence agent built for security researchers, journalists, and investigators.
+SYSTEM_PROMPT = """You are OpenOSINT, an elite AI-powered Open Source Intelligence agent built for
+security researchers, journalists, and investigators.
 
-Your mission: conduct thorough, methodical OSINT investigations using only publicly available information.
+Your mission: conduct thorough, methodical OSINT investigations using only publicly available
+information.
 
 ## Investigation Protocol
 
 When given a target, follow this sequence:
 
-1. **Identify** — Determine what type of target this is (email, username, domain, IP, phone, person name, or compound).
+1. **Identify** — Determine what type of target this is (email, username, domain, IP, phone,
+   person name, or compound).
 2. **Pivot** — Start with the most specific tool for the target type, then pivot on findings:
-   - An email → check_email → extract domain → check_domain → check username variants → check_username
+   - An email → check_email → extract domain → check_domain → check username variants
+     → check_username
    - A domain → check_domain + dns_lookup (TXT for SPF/DMARC) + whois_lookup → check IPs found
    - A username → check_username → note platforms found → check email patterns → generate_dorks
    - An IP → check_ip → reverse DNS → check that domain
    - A phone → check_phone → generate_dorks
 3. **Cross-reference** — Use results from one tool to inform calls to other tools.
 4. **Dorks** — Always generate_dorks as part of every investigation.
-5. **Breach check** — Always attempt check_breach for any email found (even if no HIBP key, the model will note it).
+5. **Breach check** — Always attempt check_breach for any email found (even if no HIBP key,
+   the model will note it).
 6. **Report** — After exhausting relevant tools, compile the final intelligence report.
 
 ## Final Report Format
@@ -124,7 +128,9 @@ class OpenOSINTAgent:
         for iteration in range(self.config.max_iterations):
             try:
                 with self.display.thinking(
-                    f"[dim]Iteration {iteration + 1} — thinking...[/]" if iteration > 0 else "Analyzing target..."
+                    f"[dim]Iteration {iteration + 1} — thinking...[/]"
+                    if iteration > 0
+                    else "Analyzing target..."
                 ):
                     response = self._call_api()
             except Exception as e:
@@ -153,7 +159,6 @@ class OpenOSINTAgent:
             )
         else:
             # OpenAI / Ollama compatible path
-            import openai
             tools_openai = _convert_tools_for_openai(TOOL_DEFINITIONS)
             return self.client.chat.completions.create(
                 model=self.config.model,
@@ -209,7 +214,9 @@ class OpenOSINTAgent:
     def _handle_openai_response(self, response: Any) -> str:
         """Handle OpenAI-compatible API response in the tool-use loop."""
         msg = response.choices[0].message
-        self.messages.append({"role": "assistant", "content": msg.content or "", "tool_calls": msg.tool_calls})
+        self.messages.append(
+            {"role": "assistant", "content": msg.content or "", "tool_calls": msg.tool_calls}
+        )
 
         if not msg.tool_calls:
             return msg.content or ""
@@ -245,7 +252,12 @@ class OpenOSINTAgent:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         path = reports_dir / f"report_{safe_target}_{timestamp}.md"
 
-        header = f"# OpenOSINT Investigation Report\n\n**Target:** `{target}`  \n**Date:** {datetime.now().isoformat()}  \n**Model:** {self.config.model}  \n\n---\n\n"
+        header = (
+            f"# OpenOSINT Investigation Report\n\n"
+            f"**Target:** `{target}`  \n"
+            f"**Date:** {datetime.now().isoformat()}  \n"
+            f"**Model:** {self.config.model}  \n\n---\n\n"
+        )
         path.write_text(header + report_text, encoding="utf-8")
         return path
 

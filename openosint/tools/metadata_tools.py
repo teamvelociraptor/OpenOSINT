@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import io
 from typing import Any
-from urllib.parse import urlparse
 
 import requests
-from PIL import Image, ExifTags
+from PIL import ExifTags, Image
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; OpenOSINT/1.0)"
@@ -49,7 +48,9 @@ def check_metadata(url: str) -> dict[str, Any]:
     if content_type.startswith("image/"):
         result.update(_extract_image_metadata(content))
     else:
-        result["notes"].append(f"Content type '{content_type}' not directly supported for metadata extraction")
+        result["notes"].append(
+            f"Content type '{content_type}' not directly supported for metadata extraction"
+        )
 
     # HTTP response metadata is always interesting
     http_meta: dict[str, str] = {}

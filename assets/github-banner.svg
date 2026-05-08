@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <defs>
+    <pattern id="grid" x="0" y="0" width="52" height="52" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="52" y2="0" stroke="rgba(0,255,136,0.04)" stroke-width="0.75"/>
+      <line x1="0" y1="0" x2="0" y2="52" stroke="rgba(0,255,136,0.04)" stroke-width="0.75"/>
+    </pattern>
+    <radialGradient id="iconGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00ff88" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#030712" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="heroGlow" cx="20%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#00ff88" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#030712" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fadeRight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="60%" stop-color="#030712" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#030712" stop-opacity="1"/>
+    </linearGradient>
+    <linearGradient id="fadeLeft" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#030712" stop-opacity="0.6"/>
+      <stop offset="30%" stop-color="#030712" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="#030712"/>
+
+  <!-- Grid texture -->
+  <rect width="1280" height="640" fill="url(#grid)"/>
+
+  <!-- Hero glow left -->
+  <rect width="1280" height="640" fill="url(#heroGlow)"/>
+
+  <!-- Icon glow halo (right side) -->
+  <ellipse cx="1010" cy="300" rx="260" ry="240" fill="url(#iconGlow)"/>
+
+  <!-- Scanline overlay -->
+  <rect width="1280" height="640" fill="none" opacity="0.4">
+    <animate attributeName="opacity" values="0.4;0.3;0.4" dur="4s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Right fade -->
+  <rect width="1280" height="640" fill="url(#fadeRight)"/>
+
+  <!-- Left fade -->
+  <rect width="1280" height="640" fill="url(#fadeLeft)"/>
+
+  <!-- ═══ Icon (right side, centered at 1010,295) — scale 3.75 (240px) ═══ -->
+  <!-- Original 64×64, scale 3.75, center at 1010,295 -->
+  <!-- translate = 1010 - 32*3.75, 295 - 32*3.75 = 1010-120, 295-120 = 890, 175 -->
+  <g transform="translate(890,175) scale(3.75)" fill="none" filter="url(#glow)">
+    <!-- Lens inner fill (subtle) -->
+    <circle cx="25" cy="25" r="19" fill="rgba(0,255,136,0.05)"/>
+    <!-- Lens ring -->
+    <circle cx="25" cy="25" r="19" stroke="#00ff88" stroke-width="3"/>
+    <!-- Handle -->
+    <line x1="39" y1="39" x2="57" y2="57" stroke="#00ff88" stroke-width="4.5" stroke-linecap="round"/>
+    <!-- Terminal › prompt -->
+    <polyline points="11,19 18,25 11,31" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Cursor block -->
+    <rect x="22" y="29" width="12" height="3.5" rx="1.5" fill="#00ff88"/>
+  </g>
+
+  <!-- ═══ Left content ═══ -->
+
+  <!-- Category label -->
+  <text x="80" y="108"
+    font-family="'Courier New', Courier, monospace"
+    font-size="13"
+    font-weight="700"
+    fill="#00ff88"
+    letter-spacing="4"
+    opacity="0.85">OPEN SOURCE INTELLIGENCE</text>
+
+  <!-- OPEN wordmark -->
+  <text x="76" y="256"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="148"
+    font-weight="900"
+    fill="#00ff88"
+    letter-spacing="-4">OPEN</text>
+
+  <!-- OSINT wordmark -->
+  <text x="76" y="390"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="148"
+    font-weight="900"
+    fill="#f1f5f9"
+    letter-spacing="-4">OSINT</text>
+
+  <!-- Green accent underline -->
+  <rect x="80" y="408" width="460" height="3.5" rx="2" fill="#00ff88" opacity="0.55"/>
+
+  <!-- Tagline -->
+  <text x="80" y="452"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-size="22"
+    font-weight="300"
+    fill="#94a3b8"
+    letter-spacing="0.5">AI-powered OSINT agent for terminal lovers</text>
+
+  <!-- Provider badges -->
+  <!-- Anthropic -->
+  <rect x="80" y="490" width="116" height="28" rx="14" fill="rgba(0,255,136,0.08)" stroke="rgba(0,255,136,0.25)" stroke-width="1"/>
+  <text x="138" y="509"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-size="12"
+    font-weight="600"
+    fill="#00ff88"
+    text-anchor="middle"
+    letter-spacing="0.5">Anthropic</text>
+
+  <!-- OpenAI -->
+  <rect x="206" y="490" width="88" height="28" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="250" y="509"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-size="12"
+    font-weight="600"
+    fill="#64748b"
+    text-anchor="middle"
+    letter-spacing="0.5">OpenAI</text>
+
+  <!-- Ollama -->
+  <rect x="304" y="490" width="84" height="28" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="346" y="509"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-size="12"
+    font-weight="600"
+    fill="#64748b"
+    text-anchor="middle"
+    letter-spacing="0.5">Ollama</text>
+
+  <!-- Python -->
+  <rect x="398" y="490" width="84" height="28" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <text x="440" y="509"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-size="12"
+    font-weight="600"
+    fill="#64748b"
+    text-anchor="middle"
+    letter-spacing="0.5">Python</text>
+
+  <!-- Bottom border accent -->
+  <rect x="0" y="635" width="1280" height="2" fill="#00ff88" opacity="0.12"/>
+  <rect x="80" y="635" width="460" height="2" fill="#00ff88" opacity="0.3"/>
+</svg>

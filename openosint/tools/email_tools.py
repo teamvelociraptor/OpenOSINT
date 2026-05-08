@@ -6,8 +6,8 @@ import re
 import socket
 from typing import Any
 
-import dns.resolver
 import dns.exception
+import dns.resolver
 
 DISPOSABLE_DOMAINS = {
     "mailinator.com", "guerrillamail.com", "tempmail.com", "throwaway.email",

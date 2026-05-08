@@ -9,6 +9,8 @@
 [![Powered by Claude](https://img.shields.io/badge/Powered%20by-Claude-orange)](https://anthropic.com)
 [![CI](https://img.shields.io/github/actions/workflow/status/openosint/openosint/ci.yml?label=CI)](https://github.com/openosint/openosint/actions)
 
+> **GitHub social preview image**: [`assets/github-banner.svg`](assets/github-banner.svg)
+
 </div>
 
 OpenOSINT is a conversational CLI that uses Claude's native tool-use API to autonomously decide which OSINT tools to run, in what order, and how to chain findings — then compiles a structured intelligence report. You provide the target; the AI does the investigation.
@@ -299,6 +301,8 @@ Contributions are welcome. To add a new OSINT tool:
 4. Add the icon to `TOOL_ICONS` in `display.py`
 
 See existing tools for the expected return schema pattern.
+
+Organization assets (GitHub banner, org logo, org banner) are in [`assets/`](assets/).
 
 Please open an issue first for large changes. For bugs, use the [issue tracker](https://github.com/openosint/openosint/issues).
 

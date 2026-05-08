@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 import phonenumbers
-from phonenumbers import geocoder, carrier, timezone as pn_timezone
+from phonenumbers import carrier, geocoder
+from phonenumbers import timezone as pn_timezone
 
 
 def check_phone(phone: str) -> dict[str, Any]:

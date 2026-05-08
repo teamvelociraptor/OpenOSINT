@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import json
 from contextlib import contextmanager
 from typing import Any, Generator
 
 from rich import box
-from rich.columns import Columns
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
@@ -121,7 +119,7 @@ class Display:
     def final_report(self, markdown_text: str, target: str) -> None:
         self.console.print()
         self.console.print(
-            Rule(f"[bold bright_cyan]  INTELLIGENCE REPORT  [/]", style="bright_cyan")
+            Rule("[bold bright_cyan]  INTELLIGENCE REPORT  [/]", style="bright_cyan")
         )
         self.console.print()
         self.console.print(Markdown(markdown_text))
@@ -145,7 +143,12 @@ class Display:
         table.add_column("Key", style="dim cyan", min_width=20)
         table.add_column("Value", style="white")
         for key, value in config_data.items():
-            display_val = "***" if "key" in key.lower() and value else str(value) if value else "[dim]not set[/]"
+            if "key" in key.lower() and value:
+                display_val = "***"
+            elif value:
+                display_val = str(value)
+            else:
+                display_val = "[dim]not set[/]"
             table.add_row(key, display_val)
         self.console.print(Panel(table, title="[bold]Configuration[/]", border_style="dim cyan"))
 
@@ -168,11 +171,21 @@ def _summarize_result(tool_name: str, result: dict[str, Any]) -> str:
         return f"[red]{result.get('error', 'error')}[/]"
 
     summaries: dict[str, str] = {
-        "check_email": f"[white]{result.get('email', '')}[/] — valid=[cyan]{result.get('valid', '?')}[/] provider=[cyan]{result.get('provider', '?')}[/]",
+        "check_email": (
+            f"[white]{result.get('email', '')}[/] — "
+            f"valid=[cyan]{result.get('valid', '?')}[/] "
+            f"provider=[cyan]{result.get('provider', '?')}[/]"
+        ),
         "check_username": f"found on [cyan]{result.get('found_count', 0)}[/] platforms",
-        "check_domain": f"registered=[cyan]{result.get('registered', '?')}[/] registrar=[cyan]{result.get('registrar', 'unknown')}[/]",
+        "check_domain": (
+            f"registered=[cyan]{result.get('registered', '?')}[/] "
+            f"registrar=[cyan]{result.get('registrar', 'unknown')}[/]"
+        ),
         "check_ip": f"[cyan]{result.get('country', '?')}[/] / [cyan]{result.get('org', '?')}[/]",
-        "check_phone": f"valid=[cyan]{result.get('valid', '?')}[/] country=[cyan]{result.get('country', '?')}[/]",
+        "check_phone": (
+            f"valid=[cyan]{result.get('valid', '?')}[/] "
+            f"country=[cyan]{result.get('country', '?')}[/]"
+        ),
         "check_breach": f"breaches=[cyan]{result.get('breach_count', 0)}[/]",
         "check_metadata": f"fields found=[cyan]{len(result.get('metadata', {}))}[/]",
         "generate_dorks": f"generated [cyan]{len(result.get('dorks', []))}[/] dork queries",

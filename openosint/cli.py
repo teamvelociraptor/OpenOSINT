@@ -7,14 +7,11 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from rich.prompt import Prompt
-from rich.text import Text
 
 from . import __version__
 from .agent import OpenOSINTAgent
-from .config import Config, CONFIG_FILE, PROVIDER_MODELS
+from .config import CONFIG_FILE, PROVIDER_MODELS, Config
 from .display import Display
-
 
 HELP_TEXT = """
 [bold bright_cyan]Commands available in interactive mode:[/]
@@ -103,7 +100,11 @@ def investigate(target: str, save: bool, output: Optional[str], quiet: bool) -> 
 
 
 @cli.command()
-@click.option("--provider", type=click.Choice(["anthropic", "openai", "ollama"]), help="AI provider")
+@click.option(
+    "--provider",
+    type=click.Choice(["anthropic", "openai", "ollama"]),
+    help="AI provider",
+)
 @click.option("--model", help="Model name override")
 @click.option("--show", is_flag=True, help="Show current configuration")
 def config(provider: Optional[str], model: Optional[str], show: bool) -> None:
@@ -176,7 +177,10 @@ def _interactive_mode(quiet: bool = False) -> None:
         sys.exit(1)
 
     display.info(f"Provider: [cyan]{config.provider}[/]  Model: [cyan]{config.model}[/]")
-    display.info("Type a target to investigate, or [cyan]help[/] for commands. [cyan]Ctrl-C[/] or [cyan]quit[/] to exit.")
+    display.info(
+        "Type a target to investigate, or [cyan]help[/] for commands. "
+        "[cyan]Ctrl-C[/] or [cyan]quit[/] to exit."
+    )
     display.print()
 
     agent = OpenOSINTAgent(config, display)

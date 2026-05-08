@@ -238,17 +238,6 @@ a:hover { opacity: 0.8; }
 }
 .sidebar-github:hover { color: var(--text) !important; opacity: 1 !important; }
 
-.theme-toggle {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.3rem 0.5rem;
-  cursor: pointer;
-  color: var(--muted);
-  transition: color 0.15s, border-color 0.15s;
-  line-height: 1;
-}
-.theme-toggle:hover { color: var(--green); border-color: var(--green-glow); }
 
 /* ─── Main Content ──────────────────────────────────────────────────────── */
 .main-content {
@@ -967,29 +956,6 @@ tr:last-child td { border-bottom: none; }
   color: var(--muted);
 }
 
-/* ─── Light theme overrides ──────────────────────────────────────────────── */
-[data-theme="light"] {
-  --bg:       #ffffff;
-  --surface:  #f8fafc;
-  --surface-2: #f1f5f9;
-  --border:   #e2e8f0;
-  --border-2: #cbd5e1;
-  --text:     #0f172a;
-  --muted:    #64748b;
-  --code-bg:  #f8fafc;
-  --green:    #16a34a;
-  --green-dim: rgba(22, 163, 74, 0.08);
-  --green-glow: rgba(22, 163, 74, 0.2);
-}
-
-[data-theme="light"] .hero-section { background: #fff; }
-[data-theme="light"] .hero-grid { opacity: 0.5; }
-[data-theme="light"] .demo-terminal { background: #1a2233; border-color: rgba(22,163,74,0.2); }
-[data-theme="light"] .sidebar { background: #f8fafc; border-right-color: #e2e8f0; }
-[data-theme="light"] .mobile-header { background: rgba(255,255,255,0.95); }
-[data-theme="light"] .t-prompt { color: #16a34a; }
-[data-theme="light"] .t-ok { color: #16a34a; }
-[data-theme="light"] .site-footer { background: #f8fafc; }
 
 /* ─── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {

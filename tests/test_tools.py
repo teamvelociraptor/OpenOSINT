@@ -1,13 +1,10 @@
 """Unit tests for OpenOSINT OSINT tools (no API keys required)."""
 
-import pytest
-from openosint.tools.email_tools import check_email, _derive_username_variants
-from openosint.tools.phone_tools import check_phone
 from openosint.tools.dork_tools import generate_dorks
+from openosint.tools.email_tools import _derive_username_variants, check_email
 from openosint.tools.ip_tools import check_ip
-from openosint.tools.dns_tools import dns_lookup, whois_lookup
+from openosint.tools.phone_tools import check_phone
 from openosint.tools.registry import TOOL_DEFINITIONS, execute_tool
-
 
 # ─── Email ───────────────────────────────────────────────────────────────────
 

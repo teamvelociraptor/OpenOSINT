@@ -1,8 +1,8 @@
 """AI provider adapters for OpenOSINT."""
 
-from .base import BaseProvider
 from .anthropic import AnthropicProvider
-from .openai import OpenAIProvider
+from .base import BaseProvider
 from .ollama import OllamaProvider
+from .openai import OpenAIProvider
 
 __all__ = ["BaseProvider", "AnthropicProvider", "OpenAIProvider", "OllamaProvider"]

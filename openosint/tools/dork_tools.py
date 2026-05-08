@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 PERSON_DORKS = [
     '"{target}" site:linkedin.com',
     '"{target}" site:facebook.com',

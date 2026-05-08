@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import socket
 import ssl
-import re
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
+import dns.exception
 import dns.resolver
 import dns.reversename
-import dns.exception
 import requests
 import whois
 
