@@ -55,7 +55,7 @@ packages = ["openosint"]
 
 [tool.ruff]
 line-length = 100
-target-version = "1.0.0"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W"]
