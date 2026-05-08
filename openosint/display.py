@@ -78,6 +78,37 @@ class Display:
         )
         self.console.print()
 
+    def show_disclaimer_banner(self) -> bool:
+        """Display the legal disclaimer and prompt for acceptance. Returns True if accepted."""
+        lines = [
+            "[bold yellow]OpenOSINT is for LEGAL and AUTHORIZED use only.[/]",
+            "",
+            "You are responsible for complying with all applicable laws.",
+            "Misuse of this tool may violate privacy laws and regulations.",
+            "",
+            "[dim]By continuing, you accept the terms in DISCLAIMER.md[/]",
+            "[dim]Type [bold]yes[/] to accept and continue, or [bold]Ctrl-C[/] to exit.[/]",
+        ]
+        content = "\n".join(lines)
+        self.console.print()
+        self.console.print(
+            Panel(
+                content,
+                title="[bold yellow]  LEGAL DISCLAIMER  [/]",
+                border_style="yellow",
+                padding=(1, 2),
+                box=box.HEAVY,
+            )
+        )
+        self.console.print()
+        try:
+            self.console.print("[dim]  Accept? [/]", end="")
+            answer = input().strip().lower()
+        except (KeyboardInterrupt, EOFError):
+            self.console.print()
+            return False
+        return answer == "yes"
+
     def rule(self, title: str = "") -> None:
         self.console.print(Rule(title, style="dim cyan"))
 

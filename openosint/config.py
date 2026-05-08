@@ -38,6 +38,8 @@ class Config:
     save_reports: bool = True
     reports_dir: str = "reports"
 
+    disclaimer_accepted: bool = False
+
     def __post_init__(self) -> None:
         if not self.model:
             self.model = PROVIDER_MODELS.get(self.provider, "claude-sonnet-4-20250514")
@@ -89,6 +91,7 @@ class Config:
             "max_iterations": self.max_iterations,
             "save_reports": self.save_reports,
             "reports_dir": self.reports_dir,
+            "disclaimer_accepted": self.disclaimer_accepted,
         }
         with open(CONFIG_FILE, "w") as f:
             json.dump(data, f, indent=2)

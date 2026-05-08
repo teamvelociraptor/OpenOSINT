@@ -13,6 +13,10 @@
 
 </div>
 
+> ⚠️ **Legal Disclaimer**: OpenOSINT is intended for **legal and authorized use only**.
+> Users are solely responsible for ensuring their use complies with all applicable laws.
+> The authors accept no liability for misuse. See [DISCLAIMER.md](DISCLAIMER.md).
+
 OpenOSINT is a conversational CLI that uses Claude's native tool-use API to autonomously decide which OSINT tools to run, in what order, and how to chain findings — then compiles a structured intelligence report. You provide the target; the AI does the investigation.
 
 ---
@@ -29,6 +33,7 @@ OpenOSINT is a conversational CLI that uses Claude's native tool-use API to auto
 - [Architecture](#architecture)
 - [Configuration](#configuration)
 - [Responsible Use](#responsible-use)
+- [Legal & Ethics](DISCLAIMER.md)
 - [Contributing](#contributing)
 - [What's New](#whats-new)
 - [License](#license)

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "openosint"
 version = "1.0.0"
-description = "AI-powered OSINT agent for conversational intelligence gathering"
+description = "AI-powered OSINT agent for conversational intelligence gathering. For authorized security research use only."
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "OpenOSINT Contributors" }]
@@ -14,6 +14,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",

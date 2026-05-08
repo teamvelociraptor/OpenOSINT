@@ -137,6 +137,7 @@
       <a href="#cli"         class="nav-item" data-section="cli">CLI Reference</a>
       <a href="#python-api"  class="nav-item" data-section="python-api">Python API</a>
       <a href="#contributing" class="nav-item" data-section="contributing">Contributing</a>
+      <a href="#legal"       class="nav-item" data-section="legal">Legal &amp; Ethics</a>
       <a href="#changelog"   class="nav-item" data-section="changelog">Changelog</a>
     </nav>
 
@@ -739,6 +740,56 @@ elif name == "my_tool":
             <strong>Guidelines:</strong> Tools should return <code>{"status": "error", "error": "..."}</code> on failure, never raise exceptions. Include a <code>"notes"</code> list for advisory messages. Always handle network timeouts gracefully.
           </div>
         </div>
+      </section>
+
+      <!-- ══ LEGAL & ETHICS ════════════════════════════════════════════════ -->
+      <section id="legal" class="doc-section reveal-section">
+        <div class="section-label">Legal &amp; Ethics</div>
+        <h2 class="section-heading font-syne">Legal &amp; Ethics</h2>
+
+        <!-- Warning card -->
+        <div class="callout" style="background:#1a1200;border:1px solid #ca8a04;border-left:4px solid #ca8a04;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
+          <span class="callout-icon">⚠️</span>
+          <div>
+            <strong style="color:#fbbf24;">This tool is for authorized use only.</strong>
+            <p class="text-[#94a3b8] text-sm mt-1 mb-0">OpenOSINT is designed for legal, ethical, and authorized security research, OSINT investigations, and educational purposes only. The authors accept no liability for misuse.</p>
+          </div>
+        </div>
+
+        <p class="text-[#94a3b8] text-sm mb-6">
+          By using OpenOSINT you agree to investigate only targets for which you have <strong>explicit authorization</strong> or a legitimate legal basis, and to comply with all applicable laws including <strong>GDPR</strong>, <strong>CCPA</strong>, and the <strong>Computer Fraud and Abuse Act (CFAA)</strong>. Any consequences from use of this tool are your sole responsibility.
+        </p>
+
+        <!-- Two-column grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div style="background:#0a1a0f;border:1px solid #166534;border-radius:8px;padding:1.25rem;">
+            <h3 class="font-syne text-base font-bold mb-3" style="color:#4ade80;">Legitimate Uses ✓</h3>
+            <ul class="space-y-2 text-sm text-[#94a3b8]">
+              <li class="flex items-start gap-2"><span style="color:#4ade80;flex-shrink:0;">✓</span> Authorized security research &amp; penetration testing</li>
+              <li class="flex items-start gap-2"><span style="color:#4ade80;flex-shrink:0;">✓</span> Investigative journalism on matters of public interest</li>
+              <li class="flex items-start gap-2"><span style="color:#4ade80;flex-shrink:0;">✓</span> Law enforcement with proper warrant or authorization</li>
+              <li class="flex items-start gap-2"><span style="color:#4ade80;flex-shrink:0;">✓</span> Investigating your own accounts &amp; digital footprint</li>
+              <li class="flex items-start gap-2"><span style="color:#4ade80;flex-shrink:0;">✓</span> CTF challenges and security education</li>
+              <li class="flex items-start gap-2"><span style="color:#4ade80;flex-shrink:0;">✓</span> Digital forensics and incident response</li>
+            </ul>
+          </div>
+          <div style="background:#1a0a0a;border:1px solid #991b1b;border-radius:8px;padding:1.25rem;">
+            <h3 class="font-syne text-base font-bold mb-3" style="color:#f87171;">Prohibited Uses ✗</h3>
+            <ul class="space-y-2 text-sm text-[#94a3b8]">
+              <li class="flex items-start gap-2"><span style="color:#f87171;flex-shrink:0;">✗</span> Stalking, harassment, or doxxing any individual</li>
+              <li class="flex items-start gap-2"><span style="color:#f87171;flex-shrink:0;">✗</span> Unauthorized surveillance of persons or organizations</li>
+              <li class="flex items-start gap-2"><span style="color:#f87171;flex-shrink:0;">✗</span> Identity theft, fraud, or social engineering attacks</li>
+              <li class="flex items-start gap-2"><span style="color:#f87171;flex-shrink:0;">✗</span> Collecting personal data without legal basis (GDPR/CCPA)</li>
+              <li class="flex items-start gap-2"><span style="color:#f87171;flex-shrink:0;">✗</span> Any activity violating another person's privacy or dignity</li>
+              <li class="flex items-start gap-2"><span style="color:#f87171;flex-shrink:0;">✗</span> Investigations without explicit target authorization</li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="text-[#94a3b8] text-sm">
+          For the full disclaimer, warranty notice, and third-party tool terms, see
+          <a href="https://github.com/openosint/openosint/blob/main/DISCLAIMER.md" target="_blank" rel="noopener" class="text-[#00ff88] hover:underline">DISCLAIMER.md on GitHub</a>.
+        </p>
       </section>
 
       <!-- ══ CHANGELOG ══════════════════════════════════════════════════════ -->

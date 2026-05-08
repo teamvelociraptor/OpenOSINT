@@ -13,6 +13,18 @@ from .agent import OpenOSINTAgent
 from .config import CONFIG_FILE, PROVIDER_MODELS, Config
 from .display import Display
 
+def _check_disclaimer(config: "Config", display: "Display") -> None:
+    """Show the legal disclaimer on first run; exit if not accepted."""
+    if config.disclaimer_accepted:
+        return
+    accepted = display.show_disclaimer_banner()
+    if not accepted:
+        display.warn("You must accept the disclaimer to use OpenOSINT.")
+        sys.exit(0)
+    config.disclaimer_accepted = True
+    config.save()
+
+
 HELP_TEXT = """
 [bold bright_cyan]Commands available in interactive mode:[/]
 
@@ -66,6 +78,7 @@ def investigate(target: str, save: bool, output: Optional[str], quiet: bool) -> 
         display.banner(__version__)
 
     config = Config.load()
+    _check_disclaimer(config, display)
     errors = config.validate()
     if errors:
         for err in errors:
@@ -168,6 +181,7 @@ def _interactive_mode(quiet: bool = False) -> None:
         display.banner(__version__)
 
     config = Config.load()
+    _check_disclaimer(config, display)
     errors = config.validate()
     if errors:
         for err in errors:
