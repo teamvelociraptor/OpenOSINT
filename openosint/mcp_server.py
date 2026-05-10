@@ -10,6 +10,7 @@ from mcp.types import Tool, TextContent, CallToolResult
 
 # Import the core business logic
 from openosint.tools.search_email import run_email_osint
+from openosint.tools.search_username import run_username_osint
 
 # ---------------------------------------------------------------------------
 # Configuration & Logging setup
@@ -48,6 +49,23 @@ async def list_tools() -> List[Tool]:
                 },
                 "required": ["email"]
             }
+        ),
+        Tool(
+            name="search_username",
+            description=(
+                "Search for a specific username across hundreds of social networks, "
+                "forums, and web services. Useful for tracking an alias."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "description": "The target username or alias (e.g., darkhacker99)"
+                    }
+                },
+                "required": ["username"]
+            }
         )
         # Future tools (e.g., search_username) will be appended here.
     ]
@@ -67,6 +85,8 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> CallToolResult:
         # Route: search_email
         if name == "search_email":
             return await _handle_search_email(arguments)
+        elif name == "search_username":
+            return await _handle_search_username(arguments)
             
         # Fallback for unknown tools
         logger.warning(f"Unknown tool requested by AI: {name}")
@@ -118,6 +138,15 @@ def _create_tool_response(text: str, is_error: bool = False) -> CallToolResult:
         content=[TextContent(type="text", text=text)],
         isError=is_error
     )
+    
+async def _handle_search_username(arguments: Dict[str, Any]) -> CallToolResult:
+    username = arguments.get("username")
+    if not username:
+        raise ValueError("The 'username' parameter is strictly required.")
+    
+    logger.info(f"Delegating to core logic for username: {username}")
+    result_text = await run_username_osint(username, timeout_seconds=180)
+    return _create_tool_response(result_text)
 
 # ---------------------------------------------------------------------------
 # Application Entry Point

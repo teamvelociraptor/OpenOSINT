@@ -5,6 +5,7 @@ import logging
 
 # Import the core OSINT tools
 from openosint.tools.search_email import run_email_osint
+from openosint.tools.search_username import run_username_osint # <-- AGGIUNTA
 
 # ---------------------------------------------------------------------------
 # CLI Configuration & Parsing
@@ -59,6 +60,23 @@ def create_parser() -> argparse.ArgumentParser:
         help="Maximum execution time in seconds (default: 120)"
     )
     
+    # Module 2: Username OSINT
+    username_parser = subparsers.add_parser(
+        "username", 
+        help="Run an OSINT scan on a specific username across multiple platforms"
+    )
+    username_parser.add_argument(
+        "target", 
+        type=str, 
+        help="The target username (e.g., johndoe99)"
+    )
+    username_parser.add_argument(
+        "-t", "--timeout", 
+        type=int, 
+        default=180, 
+        help="Maximum execution time in seconds (default: 180)"
+    )
+    
     # Module 2: Placeholder for future tools (e.g., username, domain)
     # username_parser = subparsers.add_parser("username", help="...")
     
@@ -87,6 +105,21 @@ async def execute_email_scan(target: str, timeout: int) -> None:
         
     except Exception as e:
         print(f"\n[!] CRITICAL ERROR: Could not complete the scan.\nDetails: {e}", file=sys.stderr)
+        sys.exit(1)
+        
+        
+async def execute_username_scan(target: str, timeout: int) -> None:
+    print(f"[*] Initializing OSINT scan for username: {target}")
+    print(f"[*] Timeout set to: {timeout} seconds. Please wait...\n")
+    try:
+        result = await run_username_osint(username=target, timeout_seconds=timeout)
+        print("=" * 60)
+        print(" [+] SCAN RESULTS ".center(60, "="))
+        print("=" * 60)
+        print(result)
+        print("=" * 60)
+    except Exception as e:
+        print(f"\n[!] CRITICAL ERROR: {e}", file=sys.stderr)
         sys.exit(1)
 
 # ---------------------------------------------------------------------------
