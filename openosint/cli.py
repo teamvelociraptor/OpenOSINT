@@ -32,6 +32,7 @@ from openosint.tools.search_email import run_email_osint
 from openosint.tools.search_paste import run_paste_osint
 from openosint.tools.search_shodan import run_shodan_osint
 from openosint.tools.search_username import run_username_osint
+from openosint.tools.search_virustotal import run_virustotal_osint
 
 _DIVIDER = "=" * 60
 
@@ -174,6 +175,25 @@ def _build_parser() -> argparse.ArgumentParser:
         help="IP address for host lookup, or any Shodan search query.",
     )
     shodan_cmd.add_argument(
+        "-t", "--timeout",
+        type=int,
+        default=30,
+        metavar="SECONDS",
+        help="Request timeout (default: 30).",
+    )
+
+    # virustotal
+    virustotal_cmd = subparsers.add_parser(
+        "virustotal",
+        help="VirusTotal lookup for IP, domain, URL, or file hash (no AI). Requires VIRUSTOTAL_API_KEY.",
+    )
+    virustotal_cmd.add_argument(
+        "target",
+        type=str,
+        metavar="TARGET",
+        help="IPv4 address, domain, full URL, or file hash (MD5/SHA-1/SHA-256).",
+    )
+    virustotal_cmd.add_argument(
         "-t", "--timeout",
         type=int,
         default=30,
@@ -326,6 +346,19 @@ async def _handle_shodan(
         _print_result(result)
 
 
+async def _handle_virustotal(
+    target: str,
+    timeout: int,
+    json_output: bool = False,
+) -> None:
+    print(f"[*] VirusTotal lookup: {target}", file=sys.stderr)
+    result = await run_virustotal_osint(target=target, timeout_seconds=timeout)
+    if json_output:
+        _emit_json(format_tool_result("search_virustotal", target, result))
+    else:
+        _print_result(result)
+
+
 async def _handle_multi(
     targets_arg: str,
     api_key: str | None = None,
@@ -433,6 +466,8 @@ async def _async_main() -> None:
         )
     elif args.command == "shodan":
         await _handle_shodan(args.query, args.timeout, json_output=json_output)
+    elif args.command == "virustotal":
+        await _handle_virustotal(args.target, args.timeout, json_output=json_output)
     elif args.command == "multi":
         await _handle_multi(
             args.targets, api_key=getattr(args, "api_key", None), no_pdf=no_pdf

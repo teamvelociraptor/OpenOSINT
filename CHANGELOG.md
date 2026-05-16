@@ -7,6 +7,23 @@ OpenOSINT adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.7.0] — 2026-05-16
+
+### Added
+
+- **VirusTotal integration** (`openosint/tools/search_virustotal.py`): new tool `search_virustotal` that checks IP addresses, domains, URLs, and file hashes (MD5/SHA-1/SHA-256) against VirusTotal's 70+ antivirus engines using the VirusTotal API v3. Auto-detects input type and calls the appropriate endpoint (`/ip_addresses`, `/domains`, `/urls` + `/analyses` polling, `/files`). Returns country, ASN, registrar, file type, analysis stats (malicious/suspicious/harmless/undetected votes), and a prominent warning line when `malicious > 0`. Requires `VIRUSTOTAL_API_KEY` environment variable; returns a descriptive error string if absent. Available as CLI subcommand `openosint virustotal TARGET [-t SECONDS]`, in the AI agent tool loop, and as an MCP tool.
+- **Auto-detection of input type for VirusTotal queries**: IPv4 pattern → IP lookup, `^[0-9a-fA-F]{32|40|64}$` → file hash lookup, `http(s)://` prefix → URL scan (submit + poll), everything else → domain lookup.
+
+### Changed
+
+- Version bumped to `2.7.0` in `pyproject.toml`, `README.md`.
+
+### Chore
+
+- `pyproject.toml` description updated to reflect 11 tools.
+
+---
+
 ## [2.6.0] — 2026-05-15
 
 ### Added
@@ -121,6 +138,7 @@ OpenOSINT adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `pyproject.toml` PEP 621 build configuration with `openosint` entry point.
 - MIT license.
 
+[2.7.0]: https://github.com/OpenOSINT/OpenOSINT/releases/tag/v2.7.0
 [2.6.0]: https://github.com/OpenOSINT/OpenOSINT/releases/tag/v2.6.0
 [2.5.0]: https://github.com/OpenOSINT/OpenOSINT/releases/tag/v2.5.0
 [2.4.0]: https://github.com/OpenOSINT/OpenOSINT/releases/tag/v2.4.0

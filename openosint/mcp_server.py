@@ -26,6 +26,7 @@ from openosint.tools.search_paste import run_paste_osint
 from openosint.tools.search_phone import run_phone_osint
 from openosint.tools.search_shodan import run_shodan_osint
 from openosint.tools.search_username import run_username_osint
+from openosint.tools.search_virustotal import run_virustotal_osint
 from openosint.tools.search_whois import run_whois_osint
 
 logging.basicConfig(level=logging.INFO, format="[MCP] %(levelname)s: %(message)s")
@@ -101,6 +102,15 @@ async def list_tools() -> list[Tool]:
             inputSchema=_with_json({"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}),
         ),
         Tool(
+            name="search_virustotal",
+            description=(
+                "Check IP, domain, URL, or file hash against VirusTotal's 70+ antivirus "
+                "engines and threat intelligence. Auto-detects input type. "
+                "Requires VIRUSTOTAL_API_KEY env var."
+            ),
+            inputSchema=_with_json({"type": "object", "properties": {"target": {"type": "string"}}, "required": ["target"]}),
+        ),
+        Tool(
             name="investigate_multi",
             description=(
                 "Investigate multiple targets in parallel using the full OSINT tool chain. "
@@ -133,7 +143,8 @@ _HANDLERS: dict[str, tuple] = {
     "generate_dorks":  (lambda a: run_dork_osint(a["target"]),                             lambda a: a["target"]),
     "search_paste":    (lambda a: run_paste_osint(a["query"]),                             lambda a: a["query"]),
     "search_phone":    (lambda a: run_phone_osint(a["phone"]),                             lambda a: a["phone"]),
-    "search_shodan":   (lambda a: run_shodan_osint(a["query"], timeout_seconds=30),        lambda a: a["query"]),
+    "search_shodan":      (lambda a: run_shodan_osint(a["query"], timeout_seconds=30),           lambda a: a["query"]),
+    "search_virustotal":  (lambda a: run_virustotal_osint(a["target"], timeout_seconds=30),      lambda a: a["target"]),
 }
 
 

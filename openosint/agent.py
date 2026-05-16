@@ -30,6 +30,7 @@ from openosint.tools.search_paste import run_paste_osint
 from openosint.tools.search_phone import run_phone_osint
 from openosint.tools.search_shodan import run_shodan_osint
 from openosint.tools.search_username import run_username_osint
+from openosint.tools.search_virustotal import run_virustotal_osint
 from openosint.tools.search_whois import run_whois_osint
 
 logger = logging.getLogger(__name__)
@@ -181,6 +182,27 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
             "required": ["query"],
         },
     },
+    {
+        "name": "search_virustotal",
+        "description": (
+            "Check IP, domain, URL, or file hash against VirusTotal's 70+ antivirus "
+            "engines and threat intelligence. Auto-detects input type. "
+            "Requires VIRUSTOTAL_API_KEY."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "target": {
+                    "type": "string",
+                    "description": (
+                        "IPv4 address, domain, full URL (http/https), "
+                        "or file hash (MD5/SHA-1/SHA-256) to check."
+                    ),
+                }
+            },
+            "required": ["target"],
+        },
+    },
 ]
 
 # ---------------------------------------------------------------------------
@@ -197,7 +219,8 @@ _TOOL_MAP: dict[str, Any] = {
     "generate_dorks":  lambda a: run_dork_osint(a["target"]),
     "search_paste":    lambda a: run_paste_osint(a["query"]),
     "search_phone":    lambda a: run_phone_osint(a["phone"]),
-    "search_shodan":   lambda a: run_shodan_osint(a["query"], timeout_seconds=30),
+    "search_shodan":      lambda a: run_shodan_osint(a["query"], timeout_seconds=30),
+    "search_virustotal":  lambda a: run_virustotal_osint(a["target"], timeout_seconds=30),
 }
 
 SYSTEM_PROMPT = """You are OpenOSINT, an expert OSINT analyst assistant running in a terminal.

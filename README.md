@@ -36,6 +36,7 @@ openosint shell                            # same as above
 openosint email ADDRESS [-t N]             # direct email scan, no AI
 openosint username HANDLE [-t N]           # direct username scan, no AI
 openosint shodan QUERY [-t N]              # Shodan lookup, no AI
+openosint virustotal TARGET [-t N]         # VirusTotal lookup, no AI
 openosint multi TARGETS                    # multi-target parallel investigation
 openosint --parallel email ADDRESS         # parallel: search_email + search_breach
 openosint --parallel username HANDLE       # parallel: search_username + search_paste
@@ -54,7 +55,7 @@ openosint [-v] [--api-key KEY]
 
 **Direct CLI** — run individual OSINT tools without AI for scripting or quick lookups.
 
-**MCP Server** — expose all 10 tools to any MCP-compatible AI client (Claude Code, Claude Desktop).
+**MCP Server** — expose all 11 tools to any MCP-compatible AI client (Claude Code, Claude Desktop).
 
 The framework is built on Python `asyncio`. All external binaries run as managed subprocesses with hard timeout enforcement. The AI layer uses the Anthropic native tool use API — or a local [Ollama](https://ollama.com) model (no API key required). When using Anthropic, the model issues hard stops when it needs a tool, your code executes it, the real output goes back. Hallucination in tool results is structurally impossible.
 
@@ -117,6 +118,7 @@ If a binary is absent, the corresponding tool returns a descriptive error string
 | `HIBP_API_KEY` | `search_breach` | HaveIBeenPwned API key — [get one here](https://haveibeenpwned.com/API/Key) |
 | `IPINFO_TOKEN` | `search_ip` | ipinfo.io token for higher rate limits |
 | `SHODAN_API_KEY` | `search_shodan` | Shodan API key — [get one here](https://account.shodan.io) |
+| `VIRUSTOTAL_API_KEY` | `search_virustotal` | VirusTotal API key — [get one here](https://www.virustotal.com/gui/my-apikey) |
 
 **Optional Python packages:**
 
@@ -190,6 +192,7 @@ Reports are auto-saved after every investigation containing structured findings.
 | `search_paste` | psbdmp.ws | Pastebin dump mentions |
 | `search_phone` | phoneinfoga | Carrier, country, line type |
 | `search_shodan` | Shodan API | Open ports, banners, CVEs |
+| `search_virustotal` | VirusTotal API v3 | Malicious/clean verdict from 70+ engines |
 
 ### search_email
 
@@ -374,6 +377,43 @@ Requires `SHODAN_API_KEY` environment variable.
 
 ---
 
+### search_virustotal
+
+Checks an IP address, domain, URL, or file hash against [VirusTotal](https://www.virustotal.com)'s 70+ antivirus engines using the VirusTotal API v3. Auto-detects the input type.
+
+**MCP parameter:** `target` (string, required) — IPv4 address, domain, full URL, or file hash (MD5/SHA-1/SHA-256)
+
+**CLI:**
+```bash
+$ openosint virustotal 8.8.8.8
+$ openosint virustotal example.com
+$ openosint virustotal https://example.com/path
+$ openosint virustotal 44d88612fea8a8f36de82e1278abb02f  # MD5 hash
+$ openosint virustotal 8.8.8.8 -t 30
+```
+
+**Output:**
+```
+[VirusTotal] Type: ip
+[VirusTotal] Country: US
+[VirusTotal] ASN: AS15169 Google LLC
+[VirusTotal] Network: 8.8.8.0/24
+[VirusTotal] Malicious: 0
+[VirusTotal] Suspicious: 0
+[VirusTotal] Harmless: 72
+[VirusTotal] Undetected: 10
+```
+
+If any engine flags the target as malicious:
+```
+[VirusTotal] Malicious: 3
+⚠️  FLAGGED AS MALICIOUS by 3 engines
+```
+
+Requires `VIRUSTOTAL_API_KEY` environment variable.
+
+---
+
 ## DIRECT CLI COMMANDS
 
 ```
@@ -390,6 +430,11 @@ Enumerate platforms for *HANDLE* via sherlock. Default timeout: 180s.
 shodan QUERY [-t SECONDS]
 ```
 Shodan host lookup (IP) or keyword search. Default timeout: 30s. Requires `SHODAN_API_KEY`.
+
+```
+virustotal TARGET [-t SECONDS]
+```
+Check an IPv4 address, domain, URL, or file hash (MD5/SHA-1/SHA-256) against VirusTotal. Auto-detects input type. Default timeout: 30s. Requires `VIRUSTOTAL_API_KEY`.
 
 ```
 multi TARGETS
@@ -501,6 +546,7 @@ $ claude
 | `openosint/tools/search_paste.py` | Pastebin search. |
 | `openosint/tools/search_phone.py` | Phone intelligence. |
 | `openosint/tools/search_shodan.py` | Shodan host/search lookup. |
+| `openosint/tools/search_virustotal.py` | VirusTotal IP/domain/URL/hash lookup. |
 | `openosint/tools/exceptions.py` | Shared exception hierarchy. |
 | `pyproject.toml` | Build configuration (PEP 621). |
 | `DISCLAIMER.md` | Legal notice and ethical use policy. |
@@ -529,4 +575,4 @@ MIT License. See [LICENSE](LICENSE).
 
 ---
 
-*OpenOSINT 2.6.0 &mdash; May 15, 2026*
+*OpenOSINT 2.7.0 &mdash; May 16, 2026*
