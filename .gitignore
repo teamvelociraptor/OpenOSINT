@@ -28,6 +28,7 @@ ENV/
 .env
 .env.local
 .env.*
+!.env.example
 
 # Config (contains API keys — never commit)
 config.yaml

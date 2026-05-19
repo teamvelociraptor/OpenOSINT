@@ -27,6 +27,7 @@ from openosint.tools.search_censys import run_censys_osint
 from openosint.tools.search_domain import run_domain_osint
 from openosint.tools.search_email import run_email_osint
 from openosint.tools.search_ip import run_ip_osint
+from openosint.tools.search_ip2location import run_ip2location_osint
 from openosint.tools.search_paste import run_paste_osint
 from openosint.tools.search_phone import run_phone_osint
 from openosint.tools.search_shodan import run_shodan_osint
@@ -225,6 +226,25 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
             "required": ["target"],
         },
     },
+    {
+        "name": "search_ip2location",
+        "description": (
+            "Enhanced IP intelligence using IP2Location Security Plan. "
+            "Returns geolocation, ISP, ASN, and detects VPN, proxy, Tor exit nodes, "
+            "and datacenter hosting. Sponsored integration. "
+            "Requires IP2LOCATION_API_KEY."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "ip": {
+                    "type": "string",
+                    "description": "Target IPv4 or IPv6 address.",
+                }
+            },
+            "required": ["ip"],
+        },
+    },
 ]
 
 # ---------------------------------------------------------------------------
@@ -232,18 +252,19 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
 # ---------------------------------------------------------------------------
 
 _TOOL_MAP: dict[str, Any] = {
-    "search_email":      lambda a: run_email_osint(a["email"], timeout_seconds=120),
-    "search_username":   lambda a: run_username_osint(a["username"], timeout_seconds=180),
-    "search_breach":     lambda a: run_breach_osint(a["email"], timeout_seconds=15),
-    "search_whois":      lambda a: run_whois_osint(a["domain"], timeout_seconds=15),
-    "search_ip":         lambda a: run_ip_osint(a["ip"], timeout_seconds=10),
-    "search_domain":     lambda a: run_domain_osint(a["domain"], timeout_seconds=120),
-    "generate_dorks":    lambda a: run_dork_osint(a["target"]),
-    "search_paste":      lambda a: run_paste_osint(a["query"], timeout_seconds=15),
-    "search_phone":      lambda a: run_phone_osint(a["phone"], timeout_seconds=60),
-    "search_shodan":     lambda a: run_shodan_osint(a["query"], timeout_seconds=30),
-    "search_virustotal": lambda a: run_virustotal_osint(a["target"], timeout_seconds=30),
-    "search_censys":     lambda a: run_censys_osint(a["target"], timeout_seconds=30),
+    "search_email":        lambda a: run_email_osint(a["email"], timeout_seconds=120),
+    "search_username":     lambda a: run_username_osint(a["username"], timeout_seconds=180),
+    "search_breach":       lambda a: run_breach_osint(a["email"], timeout_seconds=15),
+    "search_whois":        lambda a: run_whois_osint(a["domain"], timeout_seconds=15),
+    "search_ip":           lambda a: run_ip_osint(a["ip"], timeout_seconds=10),
+    "search_domain":       lambda a: run_domain_osint(a["domain"], timeout_seconds=120),
+    "generate_dorks":      lambda a: run_dork_osint(a["target"]),
+    "search_paste":        lambda a: run_paste_osint(a["query"], timeout_seconds=15),
+    "search_phone":        lambda a: run_phone_osint(a["phone"], timeout_seconds=60),
+    "search_shodan":       lambda a: run_shodan_osint(a["query"], timeout_seconds=30),
+    "search_virustotal":   lambda a: run_virustotal_osint(a["target"], timeout_seconds=30),
+    "search_censys":       lambda a: run_censys_osint(a["target"], timeout_seconds=30),
+    "search_ip2location":  lambda a: run_ip2location_osint(a["ip"], timeout_seconds=30),
 }
 
 SYSTEM_PROMPT = """You are OpenOSINT, an expert OSINT analyst assistant running in a terminal.

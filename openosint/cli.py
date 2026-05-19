@@ -20,6 +20,10 @@ Usage:
 
 from __future__ import annotations
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import argparse
 import asyncio
 import json
@@ -30,6 +34,7 @@ from openosint.json_output import format_tool_result
 from openosint.tools.search_breach import run_breach_osint
 from openosint.tools.search_censys import run_censys_osint
 from openosint.tools.search_email import run_email_osint
+from openosint.tools.search_ip2location import run_ip2location_osint
 from openosint.tools.search_paste import run_paste_osint
 from openosint.tools.search_shodan import run_shodan_osint
 from openosint.tools.search_username import run_username_osint
@@ -67,6 +72,7 @@ def _build_parser() -> argparse.ArgumentParser:
             "  openosint shodan 8.8.8.8                    # Shodan host lookup\n"
             "  openosint censys 8.8.8.8                   # Censys host lookup\n"
             "  openosint censys example.com               # Censys certificate search\n"
+            "  openosint ip2location 8.8.8.8              # IP2Location lookup\n"
             "  openosint multi targets.txt                 # multi-target from file\n"
             "  openosint multi a@x.com,b@y.com             # multi-target inline\n"
             "  openosint --parallel email target@example.com\n"
@@ -217,6 +223,25 @@ def _build_parser() -> argparse.ArgumentParser:
         help="IPv4 address for host lookup, or domain for certificate search.",
     )
     censys_cmd.add_argument(
+        "-t", "--timeout",
+        type=int,
+        default=30,
+        metavar="SECONDS",
+        help="Request timeout (default: 30).",
+    )
+
+    # ip2location
+    ip2location_cmd = subparsers.add_parser(
+        "ip2location",
+        help="IP2Location lookup for geolocation, ISP, VPN/Proxy/Tor/Datacenter detection (no AI). Requires IP2LOCATION_API_KEY.",
+    )
+    ip2location_cmd.add_argument(
+        "ip",
+        type=str,
+        metavar="IP_ADDRESS",
+        help="IPv4 or IPv6 address to look up.",
+    )
+    ip2location_cmd.add_argument(
         "-t", "--timeout",
         type=int,
         default=30,
@@ -395,6 +420,19 @@ async def _handle_censys(
         _print_result(result)
 
 
+async def _handle_ip2location(
+    ip: str,
+    timeout: int,
+    json_output: bool = False,
+) -> None:
+    print(f"[*] IP2Location lookup: {ip}", file=sys.stderr)
+    result = await run_ip2location_osint(ip=ip, timeout_seconds=timeout)
+    if json_output:
+        _emit_json(format_tool_result("search_ip2location", ip, result))
+    else:
+        _print_result(result)
+
+
 async def _handle_multi(
     targets_arg: str,
     api_key: str | None = None,
@@ -509,6 +547,8 @@ async def _async_main() -> None:
         await _handle_virustotal(args.target, args.timeout, json_output=json_output)
     elif args.command == "censys":
         await _handle_censys(args.target, args.timeout, json_output=json_output)
+    elif args.command == "ip2location":
+        await _handle_ip2location(args.ip, args.timeout, json_output=json_output)
     elif args.command == "multi":
         await _handle_multi(
             args.targets, api_key=getattr(args, "api_key", None), is_pdf_disabled=is_pdf_disabled

@@ -7,9 +7,22 @@ OpenOSINT adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [2.10.0] - 2026-05-19
+## [2.10.0] — 2026-05-19
 
-- chore: version bump to 2.10.0
+### Added
+
+- **IP2Location integration** (`openosint/tools/search_ip2location.py`): new tool `search_ip2location` that queries the IP2Location.io API for enhanced IP intelligence. Returns geolocation (country, region, city, lat/lon, ZIP), ISP, domain, ASN, and security flags: VPN, proxy, Tor exit node, and datacenter hosting. Adds a prominent `⚠️  FLAGGED: VPN/Proxy/Tor detected` warning line when any flag is active. Validates IPv4 and IPv6 input with regex before calling the API; returns `"Invalid IP address format."` for non-IP strings. Requires `IP2LOCATION_API_KEY` environment variable; returns a descriptive error string if absent. Available as CLI subcommand `openosint ip2location IP_ADDRESS [-t SECONDS]`, in the AI agent tool loop, and as an MCP tool. Sponsored integration.
+- **.env file support** (`python-dotenv`): `openosint/cli.py` now calls `load_dotenv()` at startup so users can store API keys in a `.env` file at the project root instead of exporting environment variables manually. `python-dotenv>=1.0.0` added to core dependencies in `pyproject.toml`.
+- **.env.example template**: new `.env.example` file at the project root documents all supported environment variables with placeholder values. Copy to `.env` and fill in keys.
+
+### Changed
+
+- `.gitignore`: added `!.env.example` so the example template is tracked while `.env` and `*.env.*` remain excluded.
+- README: tools table, optional env vars, and Integrations section updated to include `search_ip2location` and `IP2LOCATION_API_KEY`. Sponsored note added for IP2Location.
+
+### Chore
+
+- Version bumped to `2.10.0` in `pyproject.toml`, `README.md`, MCP server docstring.
 
 ---
 

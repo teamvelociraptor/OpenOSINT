@@ -127,6 +127,7 @@ If a binary is absent, the corresponding tool returns a descriptive error string
 |----------|------|---------|
 | `HIBP_API_KEY` | `search_breach` | HaveIBeenPwned API key — [get one here](https://haveibeenpwned.com/API/Key) |
 | `IPINFO_TOKEN` | `search_ip` | ipinfo.io token for higher rate limits |
+| `IP2LOCATION_API_KEY` | `search_ip2location` | IP2Location API key — [get one here](https://www.ip2location.io/pricing) |
 | `SHODAN_API_KEY` | `search_shodan` | Shodan API key — [get one here](https://account.shodan.io) |
 | `VIRUSTOTAL_API_KEY` | `search_virustotal` | VirusTotal API key — [get one here](https://www.virustotal.com/gui/my-apikey) |
 | `CENSYS_API_ID` | `search_censys` | Censys API ID — [get one here](https://censys.io/account) |
@@ -207,6 +208,7 @@ Reports are auto-saved after every investigation containing structured findings.
 | `search_shodan` | Shodan API | Open ports, banners, CVEs |
 | `search_virustotal` | VirusTotal API v3 | Malicious/clean verdict from 70+ engines |
 | `search_censys` | Censys API | Open ports, services, certificate history |
+| `search_ip2location` | IP2Location API | Geolocation, ISP, VPN/Proxy/Tor/Datacenter detection |
 
 ### search_email
 
@@ -618,7 +620,11 @@ $ claude
 |---|---|---|
 | Shodan | Network assets, open ports, CVEs | v2.4.0 |
 | VirusTotal | Malware detection, 70+ engines | v2.7.0 |
-| Censys | Open ports, services, certificate history | v2.10.0 |
+| Censys | Open ports, services, certificate history | v2.9.0 |
+| IP2Location | Geolocation, VPN, Tor, Proxy detection | ✅ v2.10.0 — Sponsored |
+
+> IP2Location integration is sponsored by [IP2Location](https://www.ip2location.com)
+> — providing enhanced IP intelligence including VPN, Tor, and datacenter detection.
 
 ---
 

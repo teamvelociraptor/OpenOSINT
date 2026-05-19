@@ -23,6 +23,7 @@ from openosint.tools.search_censys import run_censys_osint
 from openosint.tools.search_domain import run_domain_osint
 from openosint.tools.search_email import run_email_osint
 from openosint.tools.search_ip import run_ip_osint
+from openosint.tools.search_ip2location import run_ip2location_osint
 from openosint.tools.search_paste import run_paste_osint
 from openosint.tools.search_phone import run_phone_osint
 from openosint.tools.search_shodan import run_shodan_osint
@@ -122,6 +123,16 @@ async def list_tools() -> list[Tool]:
             inputSchema=_with_json({"type": "object", "properties": {"target": {"type": "string"}}, "required": ["target"]}),
         ),
         Tool(
+            name="search_ip2location",
+            description=(
+                "Enhanced IP intelligence using IP2Location Security Plan. "
+                "Returns geolocation, ISP, ASN, and detects VPN, proxy, Tor exit nodes, "
+                "and datacenter hosting. Sponsored integration. "
+                "Requires IP2LOCATION_API_KEY env var."
+            ),
+            inputSchema=_with_json({"type": "object", "properties": {"ip": {"type": "string"}}, "required": ["ip"]}),
+        ),
+        Tool(
             name="investigate_multi",
             description=(
                 "Investigate multiple targets in parallel using the full OSINT tool chain. "
@@ -155,8 +166,9 @@ _HANDLERS: dict[str, tuple] = {
     "search_paste":      (lambda a: run_paste_osint(a["query"], timeout_seconds=15),           lambda a: a["query"]),
     "search_phone":      (lambda a: run_phone_osint(a["phone"], timeout_seconds=60),           lambda a: a["phone"]),
     "search_shodan":     (lambda a: run_shodan_osint(a["query"], timeout_seconds=30),          lambda a: a["query"]),
-    "search_virustotal": (lambda a: run_virustotal_osint(a["target"], timeout_seconds=30),     lambda a: a["target"]),
-    "search_censys":     (lambda a: run_censys_osint(a["target"], timeout_seconds=30),         lambda a: a["target"]),
+    "search_virustotal":   (lambda a: run_virustotal_osint(a["target"], timeout_seconds=30),     lambda a: a["target"]),
+    "search_censys":       (lambda a: run_censys_osint(a["target"], timeout_seconds=30),         lambda a: a["target"]),
+    "search_ip2location":  (lambda a: run_ip2location_osint(a["ip"], timeout_seconds=30),        lambda a: a["ip"]),
 }
 
 
