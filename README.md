@@ -699,6 +699,13 @@ OpenOSINT is proudly sponsored by:
 
 ---
 
+## Contact & Sponsorship
+
+For business inquiries, sponsorships, or partnerships:
+📧 tommasobertocchideveloper04@gmail.com
+
+---
+
 ## LICENSE
 
 MIT License. See [LICENSE](LICENSE).
