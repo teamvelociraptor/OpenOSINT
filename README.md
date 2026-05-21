@@ -15,7 +15,7 @@ AI-powered OSINT agent · MCP server · CLI · Web interface
 
 > ⚠️ **Legal Disclaimer**: OpenOSINT is intended for **legal and authorized use only**.
 > Users are solely responsible for ensuring their use complies with all applicable laws.
-> The authors accept no liability for misuse. See [DISCLAIMER.md](DISCLAIMER.md).
+> The authors accept no liability for misuse.
 
 ### Web Interface
 > Run `openosint web` to launch the browser UI
@@ -45,12 +45,15 @@ openosint username HANDLE [-t N]           # direct username scan, no AI
 openosint shodan QUERY [-t N]              # Shodan lookup, no AI
 openosint virustotal TARGET [-t N]         # VirusTotal lookup, no AI
 openosint censys TARGET [-t N]             # Censys lookup, no AI
+openosint ip2location IP [-t N]            # IP2Location lookup, no AI
 openosint multi TARGETS                    # multi-target parallel investigation
+openosint web [--port N] [--no-browser]    # launch web UI
+openosint history [--all] [open N] [clear] # view/manage REPL session history
 openosint --parallel email ADDRESS         # parallel: search_email + search_breach
 openosint --parallel username HANDLE       # parallel: search_username + search_paste
 openosint --json email ADDRESS             # JSON output
 openosint --provider ollama                # use local Ollama instead of Anthropic
-openosint [-v] [--api-key KEY]
+openosint [-v] [--api-key KEY] [--no-pdf]
 ```
 
 ---
@@ -63,7 +66,7 @@ openosint [-v] [--api-key KEY]
 
 **Direct CLI** — run individual OSINT tools without AI for scripting or quick lookups.
 
-**MCP Server** — expose all 12 tools to any MCP-compatible AI client (Claude Code, Claude Desktop).
+**MCP Server** — expose all 13 tools to any MCP-compatible AI client (Claude Code, Claude Desktop).
 
 The framework is built on Python `asyncio`. All external binaries run as managed subprocesses with hard timeout enforcement. The AI layer uses the Anthropic native tool use API — or a local [Ollama](https://ollama.com) model (no API key required). When using Anthropic, the model issues hard stops when it needs a tool, your code executes it, the real output goes back. Hallucination in tool results is structurally impossible.
 
@@ -584,6 +587,11 @@ censys TARGET [-t SECONDS]
 Censys host view for an IPv4 address (open ports, services, ASN) or certificate search for a domain (SANs, issuer, first/last seen). Default timeout: 30s. Requires `CENSYS_API_ID` and `CENSYS_SECRET`.
 
 ```
+ip2location IP [-t SECONDS]
+```
+IP2Location lookup for enhanced IP intelligence: geolocation, ISP, VPN/Proxy/Tor/Datacenter detection. Default timeout: 30s. Requires `IP2LOCATION_API_KEY`.
+
+```
 multi TARGETS
 ```
 Investigate multiple targets in parallel. *TARGETS* is either a comma-separated list or a path to a file with one target per line. Maximum 10 targets. Each target gets its own report; a summary report is also generated.
@@ -681,6 +689,7 @@ $ claude
 | `openosint/repl.py` | Interactive REPL session. |
 | `openosint/mcp_server.py` | MCP server entry point (stdio). |
 | `openosint/cli.py` | CLI entry point. |
+| `openosint/web_server.py` | Web server (FastAPI + SSE) for browser UI. |
 | `openosint/pdf_report.py` | PDF report generator (reportlab). |
 | `openosint/multi_target.py` | Multi-target parallel investigation. |
 | `openosint/tools/search_email.py` | Email enumeration. |
@@ -697,8 +706,11 @@ $ claude
 | `openosint/tools/search_censys.py` | Censys IP host view and domain certificate search. |
 | `openosint/tools/search_ip2location.py` | IP2Location enhanced IP intelligence (geolocation, ISP, VPN/Proxy/Tor/Datacenter). |
 | `openosint/tools/exceptions.py` | Shared exception hierarchy. |
+| `openosint/json_output.py` | JSON formatting for tool results. |
+| `openosint/session_history.py` | REPL session history management. |
+| `openosint/utils.py` | Shared utility functions. |
 | `pyproject.toml` | Build configuration (PEP 621). |
-| `DISCLAIMER.md` | Legal notice and ethical use policy. |
+| `LICENSE` | MIT License. |
 
 ---
 
@@ -755,4 +767,4 @@ MIT License. See [LICENSE](LICENSE).
 
 ---
 
-*OpenOSINT 2.12.0 &mdash; May 21, 2026*
+*OpenOSINT 2.13.0 &mdash; May 21, 2026*

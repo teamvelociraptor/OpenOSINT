@@ -7,6 +7,14 @@ OpenOSINT adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.13.0] — 2026-05-21
+
+### Changed
+
+- Bumped version to 2.13.0
+
+---
+
 ## [2.12.0] — 2026-05-21
 
 ### Added

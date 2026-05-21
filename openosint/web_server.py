@@ -53,7 +53,7 @@ from openosint.tools.search_username import run_username_osint
 from openosint.tools.search_virustotal import run_virustotal_osint
 from openosint.tools.search_whois import run_whois_osint
 
-_VERSION = "2.11.0"
+_VERSION = "2.13.0"
 _ROOT = Path(__file__).parent.parent
 
 # ---------------------------------------------------------------------------
@@ -529,10 +529,10 @@ async def _demo_chat_stream(message: str) -> AsyncIterator[dict]:
     # --- tools / availability query ---
     if any(kw in msg_lower for kw in ("tool", "available", "what can")):
         lines = [
-            "I have **11 OSINT tools** available for investigations:\n\n",
+            "I have **13 OSINT tools** available for investigations:\n\n",
             "**Identity:** `search_email`, `search_username`, `search_breach`\n\n",
             "**Network:** `search_ip`, `search_whois`, `search_domain`, `search_ip2location`\n\n",
-            "**Recon:** `generate_dorks`, `search_paste`, `search_phone`, `search_censys`\n\n",
+            "**Recon:** `generate_dorks`, `search_paste`, `search_phone`, `search_shodan`, `search_virustotal`, `search_censys`\n\n",
             "Just give me a target — email address, username, domain, or IP.",
         ]
         for line in lines:
@@ -612,7 +612,7 @@ async def _demo_chat_stream(message: str) -> AsyncIterator[dict]:
             "type": "tool_result",
             "tool": "search_whois",
             "output": (
-                f"[+] IP Range: 8.8.8.0/24\n"
+                "[+] IP Range: 8.8.8.0/24\n"
                 "[+] Owner: Google LLC\n"
                 "[+] Abuse: network-abuse@google.com\n"
                 "[+] Country: US\n"
