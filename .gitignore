@@ -119,3 +119,28 @@ logs/
 *.swp
 *.swo
 *~
+
+# Vibe-coded / AI-generated test files
+# test_coverage_boost.py exists solely to pad coverage metrics to 80% — not real tests
+tests/test_coverage_boost.py
+
+# Auto-generated coverage data
+# Produced by pytest-cov / coverage.py — not source, not config
+coverage.json
+
+# OSINT tool output artifacts dumped to repo root
+# These are runtime results from manual tool runs, not source files
+researcher47.txt
+testuser.txt
+
+# Empty placeholder files
+# openosint/index.html.txt is 0 bytes — accidentally created stub
+openosint/index.html.txt
+
+# Scaffolded / early-draft web UI
+# web/ is an 836-line draft superseded by the embedded template in openosint/web_server.py
+web/
+
+# Legacy root-level VHS tape
+# openosint.tape at repo root is superseded by the organized media/tapes/ collection
+openosint.tape
