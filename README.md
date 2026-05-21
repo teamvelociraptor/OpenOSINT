@@ -20,7 +20,7 @@ AI-powered OSINT agent · MCP server · CLI · Web interface
 ### Web Interface
 > Run `openosint web` to launch the browser UI
 
-![Web Demo](media/output/web-demo.gif)
+![Web Demo](assets/web-demo.gif)
 
 ### Terminal / CLI
 > Run `openosint` for the interactive REPL or use direct CLI commands
