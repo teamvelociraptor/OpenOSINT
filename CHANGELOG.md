@@ -7,6 +7,36 @@ OpenOSINT adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.15.0] — 2026-05-25
+
+### Added
+
+- **DNS intelligence** (`openosint/tools/search_dns.py`): new tool `search_dns` that performs
+  comprehensive DNS record enumeration (A, AAAA, MX, NS, TXT, CNAME, SOA) using dnspython.
+  Automatically highlights email security misconfigurations: absent or permissive SPF policy,
+  missing or unenforced DMARC, absent DKIM records across common selectors. No external API
+  or credentials required. Available as CLI subcommand `openosint dns DOMAIN [-t SECONDS]`,
+  in the AI agent tool loop, and as an MCP tool.
+- **GitHub OSINT** (`openosint/tools/search_github.py`): new tool `search_github` that queries
+  the GitHub REST API for a username, email, or keyword. For direct username matches returns
+  full profile data (bio, location, company, follower counts, public repos/gists), the most
+  recently updated repositories with language and star counts, and email addresses discovered
+  from public commit history. For other queries returns the top 5 matching user accounts.
+  Optional `GITHUB_TOKEN` environment variable raises the unauthenticated rate limit from
+  60 to 5000 requests per hour. Available as CLI subcommand `openosint github QUERY [-t SECONDS]`,
+  in the AI agent tool loop, and as an MCP tool.
+
+### Changed
+
+- Version bumped to 2.15.0.
+- `dnspython>=2.6.0` added to core dependencies.
+- Agent SYSTEM_PROMPT updated: domain investigations now suggest `search_dns` alongside
+  `search_whois` and `search_domain`; GitHub username lookups use `search_github`.
+- MCP server docstring updated to reflect 16 tools.
+- README: tools table, CLI synopsis, and FILES section updated.
+
+---
+
 ## [2.14.0] — 2026-05-24
 
 ### Added

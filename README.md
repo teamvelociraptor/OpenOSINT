@@ -2,7 +2,7 @@
   <img src="docs/logo.svg" alt="OpenOSINT" width="200" />
   <h1>OpenOSINT</h1>
   <p><strong>AI-powered OSINT agent. Interactive REPL · CLI · MCP Server · Web UI</strong></p>
-  <p>14 tools. Powered by Anthropic Claude or local Ollama. For authorized security research only.</p>
+  <p>16 tools. Powered by Anthropic Claude or local Ollama. For authorized security research only.</p>
 </div>
 
 <div align="center">
@@ -34,8 +34,8 @@ OpenOSINT is an AI agent for Open Source Intelligence with three interfaces: an 
 
 ## Features
 
-- **AI tool chaining** — the agent decides which of 13 tools to run, chains them based on findings, and compiles a structured report
-- **14 modular tools** covering email, username, breach, WHOIS, IP, subdomain, dorks, paste, phone, Shodan, VirusTotal, Censys, IP2Location, and AbuseIPDB
+- **AI tool chaining** — the agent decides which of 16 tools to run, chains them based on findings, and compiles a structured report
+- **16 modular tools** covering email, username, breach, WHOIS, IP, subdomain, dorks, paste, phone, Shodan, VirusTotal, Censys, IP2Location, AbuseIPDB, GitHub, and DNS
 - **Anthropic + Ollama** — use Claude via API key or run fully offline with a local Ollama model
 - **MCP server** — expose all tools natively to Claude Code and Claude Desktop
 - **Parallel execution** — `--parallel` runs complementary tools concurrently via `asyncio.gather()`
@@ -95,6 +95,7 @@ Store all keys in a `.env` file at the project root (copy `.env.example`). `pyth
 | `IP2LOCATION_API_KEY` | `search_ip2location` | Optional | IP2Location.io enhanced IP intelligence — [get one](https://www.ip2location.io/pricing) *(sponsored)* |
 | `CENSYS_API_ID` + `CENSYS_SECRET` | `search_censys` | Optional | Censys Search API — [get one](https://censys.io/account) |
 | `ABUSEIPDB_API_KEY` | `search_abuseipdb` | Optional | AbuseIPDB v2 — [get one](https://www.abuseipdb.com/account/api) |
+| `GITHUB_TOKEN` | `search_github` | Optional | GitHub API — raises rate limit from 60 to 5000 req/h — [get one](https://github.com/settings/tokens) |
 
 **Optional Python packages:**
 
@@ -123,6 +124,8 @@ Store all keys in a `.env` file at the project root (copy `.env.example`). `pyth
 | `search_ip2location` | IP2Location.io API | Enhanced IP intel: VPN/Proxy/Tor/datacenter flags *(sponsored)* |
 | `search_censys` | Censys Search API | Internet-facing infrastructure, certificates |
 | `search_abuseipdb` | AbuseIPDB v2 API | IP abuse reputation: confidence score, reports, country, ISP |
+| `search_github` | GitHub REST API | Profile, repos, commit-discovered emails, username/keyword search |
+| `search_dns` | dnspython (built-in) | A/AAAA/MX/NS/TXT/CNAME/SOA records; SPF, DMARC, DKIM analysis |
 
 ### search_email
 
@@ -414,7 +417,7 @@ openosint web
 
 ### MCP Server
 
-Expose all 14 OpenOSINT tools to any MCP-compatible AI client. Once connected, Claude can natively invoke all 14 tools during conversations.
+Expose all 16 OpenOSINT tools to any MCP-compatible AI client. Once connected, Claude can natively invoke all 16 tools during conversations.
 
 **Claude Code:**
 
@@ -471,6 +474,8 @@ Set `ANTHROPIC_API_KEY` (and optionally `HIBP_API_KEY`, `IPINFO_TOKEN`) in a `.e
 | `openosint censys TARGET [-t N]` | Censys lookup |
 | `openosint ip2location IP [-t N]` | IP2Location lookup |
 | `openosint abuseipdb IP [-t N]` | AbuseIPDB reputation check |
+| `openosint github QUERY [-t N]` | GitHub profile/repo/email discovery |
+| `openosint dns DOMAIN [-t N]` | DNS records + email security analysis |
 | `openosint multi TARGETS` | Parallel multi-target investigation (max 10) |
 | `openosint history [--all] [open N] [clear]` | View/manage REPL session history |
 | `-v, --verbose` | Enable debug logging to stderr |
@@ -530,7 +535,7 @@ For commercial use in closed-source products, a separate license is required. �
 
 *For authorized security research only. See [DISCLAIMER.md](DISCLAIMER.md).*
 
-*OpenOSINT v2.14.0 — May 2026*
+*OpenOSINT v2.15.0 — May 25, 2026*
 
 ## Star History
 
