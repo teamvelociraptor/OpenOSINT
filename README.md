@@ -28,8 +28,6 @@
 > Users are solely responsible for ensuring their use complies with all applicable laws and regulations.
 > The authors accept no liability for misuse. See [DISCLAIMER.md](DISCLAIMER.md).
 
-> **☁️ Want a hosted version?** A managed cloud API is coming. [Join the waitlist →](https://openosint.tech)
-
 ## What is OpenOSINT?
 
 OpenOSINT is an AI agent for Open Source Intelligence with three interfaces: an interactive terminal REPL, a direct CLI, and an MCP server exposable to Claude Code, Claude Desktop, or any MCP-compatible client — plus a browser-based Web UI added in v2.12.0. The AI layer uses Anthropic's native tool use API (or a local Ollama model): the model issues hard stops when it needs a tool, your code executes the real binary, the actual output goes back — hallucination in tool results is structurally impossible.
