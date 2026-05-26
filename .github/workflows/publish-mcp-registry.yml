@@ -6,12 +6,19 @@ on:
 
 jobs:
   publish:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
+
       - name: Install mcp-publisher
-        run: brew install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          sudo mv mcp-publisher /usr/local/bin/
+
       - name: Publish to MCP Registry
-        run: mcp-publisher publish .mcp/server.json
-        env:
-          MCP_PUBLISHER_TOKEN: ${{ secrets.MCP_PUBLISHER_TOKEN }}
+        run: |
+          mcp-publisher login github-oidc
+          mcp-publisher publish .mcp/server.json
