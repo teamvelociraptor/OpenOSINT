@@ -508,6 +508,7 @@ Set `ANTHROPIC_API_KEY` (and optionally `HIBP_API_KEY`, `IPINFO_TOKEN`) in a `.e
 | VirusTotal | https://www.virustotal.com | `search_virustotal` | Community |
 | Censys | https://censys.io | `search_censys` | Community |
 | AbuseIPDB | https://www.abuseipdb.com | `search_abuseipdb` | Community |
+| GitHub    | https://github.com        | `search_github`    | Community |
 
 ## Sponsor this project
 

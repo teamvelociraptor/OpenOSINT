@@ -21,8 +21,15 @@ logger = logging.getLogger(__name__)
 
 _DEFAULT_TIMEOUT = 10
 _DKIM_SELECTORS = [
-    "default", "google", "mail", "dkim", "s1", "s2",
-    "selector1", "selector2", "k1",
+    "default",
+    "google",
+    "mail",
+    "dkim",
+    "s1",
+    "s2",
+    "selector1",
+    "selector2",
+    "k1",
 ]
 # +all allows any sender (dangerous); ~all is a soft-fail (weak)
 _WEAK_SPF_MECHANISMS = ("+all", "~all")

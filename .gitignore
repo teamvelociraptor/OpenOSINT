@@ -134,8 +134,10 @@ coverage.json
 
 # OSINT tool output artifacts dumped to repo root
 # These are runtime results from manual tool runs, not source files
-researcher47.txt
-testuser.txt
+researcher*.txt
+testuser*.txt
+*.osint.txt
+reports/
 
 # Empty placeholder files
 # openosint/index.html.txt is 0 bytes — accidentally created stub

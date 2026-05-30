@@ -670,7 +670,15 @@ class OllamaAgent:
         except Exception as exc:
             err_str = str(exc)
             # Surface a clear, actionable error when the Ollama server is not running
-            if any(kw in err_str.lower() for kw in ("connection refused", "connect error", "failed to connect", "cannot connect")):
+            if any(
+                kw in err_str.lower()
+                for kw in (
+                    "connection refused",
+                    "connect error",
+                    "failed to connect",
+                    "cannot connect",
+                )
+            ):
                 logger.debug("Ollama server unreachable at %s: %s", self.host, err_str)
                 return AgentResponse(
                     content="",
