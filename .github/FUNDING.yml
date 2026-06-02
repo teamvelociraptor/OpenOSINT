@@ -1,5 +1,2 @@
 open_collective: openosint_oss
-# github: [SonoTommy]
-custom:
-  - "https://openosint.tech/#sponsors"
-  - "mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry"
+custom: ['https://openosint.tech/#sponsors']
