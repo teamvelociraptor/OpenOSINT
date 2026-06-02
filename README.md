@@ -530,7 +530,7 @@ OpenOSINT is used by OSINT practitioners, security researchers, and developers w
 | **Sponsor** | Logo + link in README, website, and release notes |
 | **Supporter** | Listed on the [website sponsors page](https://openosint.tech/#sponsors) |
 
-Featured Integration tiers are available — see our Open Collective page or email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) for current rates and custom arrangements.
+Featured Integration tiers are available — contribute via [Open Collective](https://opencollective.com/openosint_oss) or email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) for current rates and custom arrangements.
 
 Community integrations in the table above are eligible to upgrade to a Featured Integration sponsorship.
 
@@ -542,7 +542,7 @@ Community integrations in the table above are eligible to upgrade to a Featured 
 
 ---
 
-To sponsor OpenOSINT, email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry). Full prospectus: [SPONSORS.md](SPONSORS.md).
+To sponsor OpenOSINT: [Open Collective](https://opencollective.com/openosint_oss) · email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) · full prospectus: [SPONSORS.md](SPONSORS.md).
 
 ## Contributing
 

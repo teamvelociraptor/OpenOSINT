@@ -1,4 +1,4 @@
-# open_collective: openosint_oss  # uncomment once Open Source Collective approves the fiscal host
+open_collective: openosint_oss
 # github: [SonoTommy]
 custom:
   - "https://openosint.tech/#sponsors"

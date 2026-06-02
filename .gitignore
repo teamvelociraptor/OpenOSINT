@@ -33,6 +33,8 @@ ENV/
 # Config (contains API keys — never commit)
 config.yaml
 config.yml
+# Exception: GitHub metadata files named config.yml are not secrets
+!.github/**
 
 # OpenOSINT generated output
 reports/
