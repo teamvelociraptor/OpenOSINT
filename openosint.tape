@@ -5,7 +5,7 @@ Output assets/demo.gif
 
 Set Shell "bash"
 Set FontSize 26
-Set FontFamily "JetBrains Mono"
+Set FontFamily "SF Mono"
 Set Width 1200
 Set Height 700
 Set Theme "Catppuccin Mocha"
@@ -20,6 +20,9 @@ Sleep 150ms
 Type "alias openosint='./scripts/openosint_vhs_demo.sh'"
 Enter
 Sleep 150ms
+Type "clear"
+Enter
+Sleep 500ms
 Show
 # --------------------------------------------------------
 
