@@ -37,18 +37,26 @@ jobs:
           mcp-publisher login github-oidc
 
           MAX_ATTEMPTS=5
-          ATTEMPT=0
           DELAYS=(15 30 60 120 120)
 
-          until mcp-publisher publish .mcp/server.json; do
-            ATTEMPT=$((ATTEMPT + 1))
-            if [ "$ATTEMPT" -ge "$MAX_ATTEMPTS" ]; then
+          for attempt in $(seq 1 $((MAX_ATTEMPTS + 1))); do
+            out=$(mcp-publisher publish .mcp/server.json 2>&1)
+            code=$?
+            echo "$out"
+            if [ $code -eq 0 ]; then
+              echo "✅ MCP Registry publish succeeded"
+              exit 0
+            fi
+            # Treat an already-registered version as idempotent success.
+            if echo "$out" | grep -qi "duplicate version"; then
+              echo "✅ Version already registered in MCP Registry (idempotent)"
+              exit 0
+            fi
+            if [ $attempt -gt $MAX_ATTEMPTS ]; then
               echo "❌ mcp-publisher publish failed after $MAX_ATTEMPTS attempts"
               exit 1
             fi
-            WAIT=${DELAYS[$ATTEMPT-1]}
-            echo "⚠️  Attempt $ATTEMPT failed. Retrying in ${WAIT}s..."
+            WAIT=${DELAYS[$((attempt-1))]}
+            echo "⚠️  Attempt $attempt failed. Retrying in ${WAIT}s..."
             sleep "$WAIT"
           done
-
-          echo "✅ MCP Registry publish succeeded on attempt $((ATTEMPT + 1))"
