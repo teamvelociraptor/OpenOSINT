@@ -38,6 +38,24 @@ body {
   text-decoration: underline;
 }
 
+/* Sponsor CTA — visually separated button at the end of the nav */
+.nav-sep {
+  color: #444444;
+  margin-right: 18px;
+  user-select: none;
+}
+.nav-cta {
+  color: #3fb950 !important;
+  border: 1px solid #3fb950;
+  padding: 1px 8px;
+  border-radius: 2px;
+  text-decoration: none !important;
+}
+.nav-cta:hover {
+  background: #3fb950;
+  color: #000000 !important;
+}
+
 /* ------------------------------------------------------------------ */
 /* Main content                                                         */
 /* ------------------------------------------------------------------ */

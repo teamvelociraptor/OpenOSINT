@@ -128,8 +128,68 @@
   }
   .category-name { flex: 1; font-weight: bold; }
 
+  /* ---- Sponsor cards ---- */
+  .sponsors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin: 14px 0;
+  }
+  .sponsor-card {
+    border: 1px solid #000000;
+    background: #f8f8f8;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .sponsor-card:hover { border-color: #3fb950; background: #f0f0f0; text-decoration: none; }
+  .sponsor-card-logo {
+    display: inline-block;
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    padding: 6px 10px;
+    align-self: flex-start;
+    line-height: 0;
+  }
+  .sponsor-card-logo img { height: 28px; width: auto; display: block; }
+  .sponsor-card-name {
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: bold;
+    color: #000000;
+    margin-top: 2px;
+  }
+  .sponsor-card-category {
+    font-family: monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #555555;
+  }
+  .sponsor-card-desc {
+    font-size: 14px;
+    color: #222222;
+    flex: 1;
+  }
+  .sponsor-card-link {
+    font-family: monospace;
+    font-size: 12px;
+    color: #3fb950;
+    align-self: flex-start;
+  }
+
   @media (prefers-color-scheme: dark) {
     .sponsor-logo-box { background: #ffffff; border-color: #555; }
+    .sponsor-card          { border-color: #555555; background: #141414; }
+    .sponsor-card:hover    { border-color: #00ff88; background: #1a1a1a; }
+    .sponsor-card-logo     { background: #ffffff; border-color: #444; }
+    .sponsor-card-name     { color: #d8d8d8; }
+    .sponsor-card-category { color: #888888; }
+    .sponsor-card-desc     { color: #aaaaaa; }
+    .sponsor-card-link     { color: #00ff88; }
     .tier-box          { border-color: #d8d8d8; }
     .tier-box h3       { color: #d8d8d8; }
     .tier-price        { color: #00ff88; }
@@ -154,9 +214,8 @@
 <a href="/" style="color:#3fb950;font-weight:bold;">&#8592; Back to App</a>
 <a href="/blog/" style="color:#58a6ff;">BLOG</a>
 <a href="/tools/" style="color:#58a6ff;">TOOLS</a>
-<a href="/sponsors.html" style="color:#3fb950;font-weight:bold;text-decoration:underline;">SPONSORS</a>
-<a href="https://opencollective.com/openosint_oss" target="_blank" rel="noopener" style="color:#58a6ff;">OPEN COLLECTIVE</a>
 <a href="https://github.com/OpenOSINT/OpenOSINT" target="_blank" rel="noopener">GITHUB</a>
+<span class="nav-sep">|</span><a href="https://opencollective.com/openosint_oss" target="_blank" rel="noopener" class="nav-cta">&#10084; Sponsor</a>
 </div>
 
 <div id="content">
@@ -318,14 +377,7 @@
 
 <h2 id="current">CURRENT SPONSORS</h2>
 <div class="indent">
-<a href="https://www.ip2location.com" target="_blank" rel="noopener sponsored" class="sponsor-logo-box">
-  <img src="assets/ip2location-logo.png"
-       alt="IP2Location"
-       width="160">
-</a>
-
-<p style="margin-top:12px;"><b>IP2Location</b> &mdash; <b>IP Geolocation &amp; IP Intelligence</b> <span class="pill pill-taken">TAKEN</span></p>
-<p>Integration: <a href="/tools/#search_ip2location"><code>search_ip2location</code></a> &mdash; country, region, city, ISP, ASN, domain, coordinates, and (Security Plan) VPN/proxy/Tor/datacenter flags via the <a href="https://www.ip2location.io" target="_blank" rel="noopener">IP2Location.io</a> API.</p>
+<div id="sponsors-grid"></div>
 </div>
 
 <h2 id="contact">CONTACT</h2>
@@ -365,5 +417,45 @@
 </div>
 
 </div>
+
+<script>
+// ── Sponsor data ──────────────────────────────────────────────────────────────
+// To add a sponsor: append one object to this array. No markup changes needed.
+var SPONSORS = [
+  {
+    name:        "IP2Location",
+    url:         "https://www.ip2location.com",
+    logo:        "assets/ip2location-logo.png",
+    logo_alt:    "IP2Location logo — IP geolocation and threat intelligence provider",
+    category:    "IP Geolocation &amp; IP Intelligence",
+    description: "Enhanced IP geolocation, ISP, domain, ASN, and (Security Plan) VPN/proxy/Tor/datacenter detection.",
+    tool:        "search_ip2location"
+  }
+];
+
+// ── Renderer ──────────────────────────────────────────────────────────────────
+(function () {
+  var el = document.getElementById('sponsors-grid');
+  if (!el) return;
+  if (!SPONSORS.length) {
+    el.innerHTML = '<p style="font-family:monospace;font-size:13px;color:#666;">No current sponsors.</p>';
+    return;
+  }
+  var cards = SPONSORS.map(function (s) {
+    return [
+      '<a href="' + s.url + '" target="_blank" rel="noopener sponsored" class="sponsor-card">',
+      '  <span class="sponsor-card-logo">',
+      '    <img src="' + s.logo + '" alt="' + s.logo_alt + '" height="28">',
+      '  </span>',
+      '  <span class="sponsor-card-name">' + s.name + '</span>',
+      '  <span class="sponsor-card-category">' + s.category + '</span>',
+      '  <span class="sponsor-card-desc">' + s.description + '</span>',
+      '  <span class="sponsor-card-link">Visit ' + s.name + ' &#8599;</span>',
+      '</a>'
+    ].join('\n');
+  });
+  el.innerHTML = '<div class="sponsors-grid">' + cards.join('') + '</div>';
+}());
+</script>
 </body>
 </html>

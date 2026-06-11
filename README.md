@@ -35,18 +35,19 @@ mcp-name: io.github.OpenOSINT/openosint
 
 <table>
 <tr>
-<td align="center" width="200">
+<td align="center" valign="top" width="200">
 <a href="https://www.ip2location.com" rel="noopener sponsored">
-<img src="https://raw.githubusercontent.com/OpenOSINT/OpenOSINT/main/docs/assets/ip2location-logo.png" alt="IP2Location" width="140"><br>
-<sub><b>IP2Location</b></sub>
+<img src="https://raw.githubusercontent.com/OpenOSINT/OpenOSINT/main/docs/assets/ip2location-logo.png" alt="IP2Location — IP geolocation and threat intelligence provider" width="140">
 </a><br>
-<sub>Featured Integration · IP Geolocation</sub>
+<sub><b>IP2Location</b></sub><br>
+<sub>IP Geolocation &amp; IP Intelligence</sub><br>
+<sub><em>Enhanced IP geolocation, ISP, VPN/Proxy/Tor detection.</em></sub>
 </td>
-<td>
+<td valign="top">
 <b>Your logo here</b><br>
-<sub>Open categories: proxy detection · breach data · threat intel · email/identity</sub><br>
+<sub>Open: <b>proxy detection</b> · <b>breach data</b> · <b>threat intel</b> · <b>email/identity</b></sub><br>
 <sub>One vendor per category — exclusive placement across README, docs, CLI, and Web UI.</sub><br><br>
-<sub><a href="https://openosint.tech/sponsors.html">Media kit & pricing →</a> · <a href="https://opencollective.com/openosint_oss">Open Collective</a> · <a href="mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry">openosint@yahoo.com</a></sub>
+<sub><a href="https://openosint.tech/sponsors.html">Media kit &amp; pricing →</a> · <a href="https://opencollective.com/openosint_oss">Open Collective</a> · <a href="mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry">openosint@yahoo.com</a></sub>
 </td>
 </tr>
 </table>
