@@ -21,37 +21,50 @@ async def _handle_benefit_grant(data: dict) -> None:
     """
     Handle benefit_grant.created and benefit_grant.updated.
 
-    Extracts the Polar-generated license key and upserts the customer.
-    The license key IS the customer's X-API-Key — Polar mints it on purchase
-    and shows it in the customer portal automatically.
+    Fetches the full license key from the Polar license-keys API using the
+    license_key_id in the grant.  The full key becomes the customer's
+    X-API-Key — it is never derived from display_key.
 
-    benefit_grant.created fires only AFTER payment is confirmed, so we never
-    credit an uncaptured order.
+    Primary payload path: data.properties.license_key_id
+    Fallbacks:           data.license_key_id
+                         data.properties.license_key.id
 
-    ⚠️  Verify the exact key field path by sending a test event from
-        Polar dashboard → Developer → Webhooks → Send test event
-        and inspecting the benefit_grant payload.
+    benefit_grant.created fires only AFTER payment is confirmed.
     """
+    # Log once so we can confirm the real payload paths on first live event.
+    logger.info("benefit_grant payload: %s", data)
+
     customer_id = data.get("customer_id", "")
     benefit_id  = data.get("benefit_id", "")
     properties  = data.get("properties") or {}
 
-    # Try both known field paths; verify correct one against live payload.
-    license_field = properties.get("license_key")
-    if isinstance(license_field, dict):
-        api_key = license_field.get("key", "")
-    elif isinstance(license_field, str):
-        api_key = license_field
-    else:
-        api_key = properties.get("display_key", "")
+    # Extract license_key_id defensively across known Polar schema paths.
+    license_key_id = (
+        properties.get("license_key_id")        # primary: data.properties.license_key_id
+        or data.get("license_key_id")            # fallback: data.license_key_id
+    )
+    if not license_key_id:
+        lk = properties.get("license_key")
+        if isinstance(lk, dict):
+            license_key_id = lk.get("id", "")   # last resort: data.properties.license_key.id
 
-    if not api_key:
+    if not license_key_id:
         logger.error(
-            "benefit_grant payload missing license key — "
+            "benefit_grant missing license_key_id — "
             "customer_id=%s benefit_id=%s properties_keys=%s",
             customer_id,
             benefit_id,
             list(properties.keys()),
+        )
+        return
+
+    # Fetch the full key from Polar — do NOT fall back to display_key on failure.
+    api_key = await polar.fetch_license_key(license_key_id)
+    if not api_key:
+        logger.error(
+            "fetch_license_key failed for id=%s customer_id=%s — skipping upsert",
+            license_key_id,
+            customer_id,
         )
         return
 

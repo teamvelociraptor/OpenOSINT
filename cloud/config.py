@@ -11,6 +11,7 @@ import os
 # ── Polar.sh ──────────────────────────────────────────────────────────────────
 POLAR_TOKEN          = os.environ.get("POLAR_TOKEN", "")
 POLAR_WEBHOOK_SECRET = os.environ.get("POLAR_WEBHOOK_SECRET", "")
+POLAR_API_BASE       = os.environ.get("POLAR_API_BASE", "https://api.polar.sh")
 
 # ── Database ──────────────────────────────────────────────────────────────────
 DATABASE_URL = os.environ.get("DATABASE_URL", "")

@@ -26,6 +26,7 @@ from httpx import ASGITransport, AsyncClient
 
 from cloud import db, keys
 from cloud.main import create_app
+from cloud.routes.webhook import _handle_benefit_grant
 
 # ── fixtures ──────────────────────────────────────────────────────────────────
 
@@ -335,3 +336,25 @@ async def test_github_customer_optional_without_key(client):
 
     assert resp.status_code == 200
     assert db._MEMORY_CUSTOMERS["key-gh-none"].credits == 4
+
+
+# ── (k) webhook stores full license key (not display_key) ────────────────────
+
+
+async def test_benefit_grant_created_fetches_full_license_key():
+    grant_data = {
+        "customer_id": "polar_cust_001",
+        "benefit_id": "benefit_payg",
+        "properties": {
+            "license_key_id": "lk_abc123",
+            "display_key": "OPEN****KEY",
+        },
+    }
+
+    with patch("cloud.polar.fetch_license_key", new=AsyncMock(return_value="FULLKEY")):
+        await _handle_benefit_grant(grant_data)
+
+    # Full key stored — display_key never used
+    assert "FULLKEY" in db._MEMORY_CUSTOMERS
+    assert db._MEMORY_CUSTOMERS["FULLKEY"].api_key == "FULLKEY"
+    assert db._MEMORY_CUSTOMERS["FULLKEY"].polar_customer_id == "polar_cust_001"

@@ -146,6 +146,11 @@ async def upsert_customer(
         plan=plan,
     )
     if _is_memory_mode():
+        if polar_customer_id and polar_customer_id in _MEMORY_BY_POLAR_ID:
+            # Remove stale api_key entry so the lookup index stays consistent.
+            old_key = _MEMORY_BY_POLAR_ID[polar_customer_id]
+            if old_key != api_key:
+                _MEMORY_CUSTOMERS.pop(old_key, None)
         _MEMORY_CUSTOMERS[api_key] = new
         if polar_customer_id:
             _MEMORY_BY_POLAR_ID[polar_customer_id] = api_key
@@ -154,10 +159,10 @@ async def upsert_customer(
         """
         INSERT INTO customers (api_key, polar_customer_id, credits, plan)
         VALUES ($1, $2, $3, $4)
-        ON CONFLICT (api_key) DO UPDATE
-            SET polar_customer_id = EXCLUDED.polar_customer_id,
-                credits            = EXCLUDED.credits,
-                plan               = EXCLUDED.plan
+        ON CONFLICT (polar_customer_id) WHERE polar_customer_id IS NOT NULL DO UPDATE
+            SET api_key = EXCLUDED.api_key,
+                credits = EXCLUDED.credits,
+                plan    = EXCLUDED.plan
         """,
         api_key,
         polar_customer_id,

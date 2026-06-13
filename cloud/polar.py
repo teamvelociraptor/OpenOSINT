@@ -37,10 +37,11 @@ import time
 
 import httpx
 
+from cloud.config import POLAR_API_BASE
+
 logger = logging.getLogger(__name__)
 
 _TIMESTAMP_TOLERANCE_SECS = 300  # reject webhooks older than 5 minutes
-_POLAR_API = "https://api.polar.sh"
 
 # ── event type constants ──────────────────────────────────────────────────────
 # ⚠️  Confirm these against Polar's test-event tool before going live.
@@ -115,7 +116,7 @@ async def send_usage_event(polar_customer_id: str, tool: str) -> None:
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             await client.post(
-                f"{_POLAR_API}/v1/events/ingest",
+                f"{POLAR_API_BASE}/v1/events/ingest",
                 headers={
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
@@ -128,3 +129,45 @@ async def send_usage_event(polar_customer_id: str, tool: str) -> None:
             )
     except Exception as exc:
         logger.debug("Polar usage event failed (swallowed): %s", exc)
+
+
+async def fetch_license_key(license_key_id: str) -> str | None:
+    """
+    Fetch the full license key string from the Polar license-keys API.
+
+    Returns the `key` field from the response, or None on any error.
+    Errors are logged but never raised — the webhook handler must decide
+    whether to proceed or skip.
+    """
+    token = os.environ.get("POLAR_TOKEN", "")
+    if not token or not license_key_id:
+        logger.error(
+            "fetch_license_key: POLAR_TOKEN not set or license_key_id empty (id=%r)",
+            license_key_id,
+        )
+        return None
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(
+                f"{POLAR_API_BASE}/v1/license-keys/{license_key_id}",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+        if resp.status_code != 200:
+            logger.error(
+                "Polar license-keys API returned HTTP %d for id=%s",
+                resp.status_code,
+                license_key_id,
+            )
+            return None
+        key = resp.json().get("key", "")
+        if not key:
+            logger.error(
+                "Polar license-keys response missing 'key' field for id=%s: %s",
+                license_key_id,
+                resp.text[:200],
+            )
+            return None
+        return key
+    except Exception as exc:
+        logger.error("Failed to fetch license key id=%s: %s", license_key_id, exc)
+        return None
