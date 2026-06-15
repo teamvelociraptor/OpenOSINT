@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpenOSINT Cloud — IP &amp; Domain Infrastructure Intelligence API</title>
-<meta name="description" content="Hosted REST and MCP API for IP geolocation, ISP/ASN lookup, proxy/VPN/Tor detection, IP abuse reputation, DNS records, and subdomain enumeration. Built for developers and security teams.">
-<meta name="keywords" content="IP intelligence API, IP geolocation API, AbuseIPDB, DNS lookup API, subdomain enumeration API, proxy detection, VPN detection, Tor exit node, MCP server, fraud detection API">
+<title>OpenOSINT Cloud — IP &amp; Domain Intelligence for AI Agents (MCP + REST)</title>
+<meta name="description" content="A single MCP server (with a REST fallback) that gives AI agents and MCP clients structured IP and domain intelligence — geolocation, proxy/VPN/Tor detection, abuse reputation, DNS, and subdomain enumeration. One key, no infra to manage.">
+<meta name="keywords" content="MCP server, AI agent, agent tools, Claude MCP, IP intelligence API, IP geolocation API, AbuseIPDB, DNS lookup API, subdomain enumeration API, proxy detection, VPN detection, Tor exit node">
 <link rel="canonical" href="https://openosint.tech/cloud/">
-<meta property="og:title" content="OpenOSINT Cloud — IP &amp; Domain Infrastructure Intelligence API">
-<meta property="og:description" content="Hosted REST and MCP API for IP and domain infrastructure intelligence. Geolocation, ISP/ASN, proxy/VPN/Tor detection, abuse reputation, DNS, subdomain enumeration.">
+<meta property="og:title" content="OpenOSINT Cloud — IP &amp; Domain Intelligence for AI Agents (MCP + REST)">
+<meta property="og:description" content="A single MCP server giving AI agents and MCP clients structured IP and domain intelligence — geolocation, proxy/VPN/Tor detection, abuse reputation, DNS, and subdomain enumeration. One key, no infra.">
 <meta property="og:url" content="https://openosint.tech/cloud/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="OpenOSINT">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="OpenOSINT Cloud — IP &amp; Domain Infrastructure Intelligence API">
-<meta name="twitter:description" content="Hosted REST + MCP API for IP and domain infrastructure intelligence. For developers and security/anti-fraud teams.">
+<meta name="twitter:title" content="OpenOSINT Cloud — IP &amp; Domain Intelligence for AI Agents (MCP + REST)">
+<meta name="twitter:description" content="One MCP server for IP and domain intelligence. Geolocation, proxy/VPN/Tor detection, abuse reputation, DNS, subdomain enumeration. For AI agents and MCP clients.">
 <link rel="icon" type="image/svg+xml" href="../logo.svg">
 <link rel="stylesheet" href="../style.css">
 <script type="application/ld+json">
@@ -106,8 +106,8 @@
 
 <h2 id="name">NAME</h2>
 <div class="indent">
-<p><b>OpenOSINT Cloud</b> &mdash; hosted REST and MCP API for IP and domain infrastructure intelligence.</p>
-<p>One call, one bill, no infra to manage. Billing via <a href="https://polar.sh" target="_blank" rel="noopener">Polar</a> (Merchant of Record &mdash; handles international VAT automatically).</p>
+<p><b>OpenOSINT Cloud</b> &mdash; IP &amp; domain infrastructure intelligence for AI agents and MCP clients.</p>
+<p>A single MCP server (with a REST fallback) that gives AI agents and MCP clients structured intelligence about IP addresses and domains &mdash; geolocation, proxy/VPN/Tor detection, abuse reputation, DNS, and subdomain enumeration &mdash; without wiring up five separate providers and five API keys. One call, one bill, no infra to manage. Billing via <a href="https://polar.sh" target="_blank" rel="noopener">Polar</a> (Merchant of Record &mdash; handles international VAT automatically).</p>
 <a href="https://buy.polar.sh/polar_cl_45nAq1h8jAxfrHXJNSFTXQ9jc5pk6mzOi4zSj4Dxypb" class="cta-btn" target="_blank" rel="noopener noreferrer">Get started &rarr;</a>
 </div>
 
@@ -120,7 +120,7 @@
 <ul class="tool-list">
   <li><b>search_ip</b> &mdash; IP geolocation, ISP, ASN, hostname (ipinfo.io)</li>
   <li><b>search_ip2location</b> &mdash; enriched IP intelligence: proxy/VPN/datacenter/Tor detection, threat score, usage type <em>(sponsored by <a href="https://www.ip2location.io/" target="_blank" rel="noopener">IP2Location.io</a> &mdash; server key included, no setup required)</em></li>
-  <li><b>search_abuseipdb</b> &mdash; IP abuse reputation and report history (AbuseIPDB)</li>
+  <li><b>search_abuseipdb</b> &mdash; IP abuse reputation and report history (AbuseIPDB) <em>(requires your own AbuseIPDB key &mdash; BYOK)</em></li>
   <li><b>search_dns</b> &mdash; DNS record lookup: A, AAAA, MX, NS, TXT, CNAME, SOA</li>
   <li><b>search_domain</b> &mdash; subdomain enumeration via passive DNS</li>
 </ul>
@@ -132,14 +132,34 @@
 <p>Each tool call consumes one credit. Credits are never deducted for upstream errors.</p>
 </div>
 
+<h2 id="mcp">MCP SERVER</h2>
+<div class="indent">
+<p>The same five tools are available as an MCP server for Claude Desktop, Claude Code, and any MCP-compatible client &mdash; no extra infrastructure required.</p>
+<p><b>Claude Code</b></p>
+<pre>claude mcp add openosint-cloud \
+  --env OPENOSINT_API_KEY=YOUR_KEY \
+  python /path/to/OpenOSINT/openosint/mcp_server.py</pre>
+<p><b>Claude Desktop</b> &mdash; add to <code>claude_desktop_config.json</code>:</p>
+<pre>{
+  "mcpServers": {
+    "openosint-cloud": {
+      "command": "python",
+      "args": ["/path/to/OpenOSINT/openosint/mcp_server.py"],
+      "env": { "OPENOSINT_API_KEY": "YOUR_KEY" }
+    }
+  }
+}</pre>
+<p>Once configured, Claude can call <code>search_ip</code>, <code>search_ip2location</code>, <code>search_abuseipdb</code>, <code>search_dns</code>, and <code>search_domain</code> directly from the chat interface.</p>
+</div>
+
 <h2 id="use-cases">USE CASES</h2>
 <div class="indent">
 <ul class="tool-list">
+  <li>AI agents and MCP clients that need structured IP and domain intelligence in one tool call</li>
+  <li>Developers building enrichment pipelines, evaluation harnesses, and agent workflows</li>
   <li>Backend developers enriching IP addresses at sign-up or login</li>
-  <li>Fraud and AML teams screening transactions by IP and domain</li>
   <li>Security engineers building threat-intelligence pipelines</li>
   <li>Anti-fraud platforms detecting proxies, VPNs, and datacenter traffic</li>
-  <li>AI agents and MCP clients that need structured infrastructure data</li>
 </ul>
 </div>
 
@@ -176,7 +196,7 @@
 <td>Subscription</td>
 <td>$49 / mo</td>
 <td>5,000 / mo</td>
-<td>Production services, higher traffic</td>
+<td>Higher-volume agents and apps</td>
 </tr>
 </tbody>
 </table>
@@ -237,26 +257,6 @@ Content-Type: application/json
 <p>Tools that require upstream API keys use BYOK (Bring Your Own Key): store your key once with <code>POST /v1/keys</code>, and the gateway resolves it automatically on every call. <code>search_ip2location</code> is server-keyed &mdash; no setup required.</p>
 </div>
 
-<h2 id="mcp">MCP SERVER</h2>
-<div class="indent">
-<p>The same five tools are available as an MCP server for Claude Desktop, Claude Code, and any MCP-compatible client &mdash; no extra infrastructure required.</p>
-<p><b>Claude Code</b></p>
-<pre>claude mcp add openosint-cloud \
-  --env OPENOSINT_API_KEY=YOUR_KEY \
-  python /path/to/OpenOSINT/openosint/mcp_server.py</pre>
-<p><b>Claude Desktop</b> &mdash; add to <code>claude_desktop_config.json</code>:</p>
-<pre>{
-  "mcpServers": {
-    "openosint-cloud": {
-      "command": "python",
-      "args": ["/path/to/OpenOSINT/openosint/mcp_server.py"],
-      "env": { "OPENOSINT_API_KEY": "YOUR_KEY" }
-    }
-  }
-}</pre>
-<p>Once configured, Claude can call <code>search_ip</code>, <code>search_ip2location</code>, <code>search_abuseipdb</code>, <code>search_dns</code>, and <code>search_domain</code> directly from the chat interface.</p>
-</div>
-
 <h2 id="faq">FAQ</h2>
 <div class="indent">
 
@@ -267,7 +267,7 @@ Each <code>POST /v1/enrich</code> call consumes one credit, regardless of which 
 No. Monthly credits reset at the start of each billing cycle. The pay-as-you-go pack ($10 / 100 credits) does not expire.</p>
 
 <p><b>Which tools are included?</b><br>
-<code>search_ip</code>, <code>search_ip2location</code> (IP2Location key included &mdash; no setup required), <code>search_abuseipdb</code>, <code>search_dns</code>, and <code>search_domain</code>. Tools that require your own upstream key (e.g. <code>search_abuseipdb</code>) support BYOK via <code>POST /v1/keys</code>.</p>
+<code>search_ip</code>, <code>search_ip2location</code> (IP2Location key included &mdash; no setup required), <code>search_abuseipdb</code> (requires your own AbuseIPDB key &mdash; BYOK), <code>search_dns</code>, and <code>search_domain</code>. Store your AbuseIPDB key once via <code>POST /v1/keys</code> and it is resolved automatically on every call.</p>
 
 <p><b>Is there personal data in the responses?</b><br>
 No. The API is scoped to IP addresses and domain names only. It does not search for, store, or return personal data about individuals, and does not use leaked or breached data sources.</p>
