@@ -39,6 +39,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
+from openosint.brightdata import BRIGHTDATA_LINK_WEB
 from openosint.tools.generate_dorks import run_dork_osint
 from openosint.tools.scrape_url import run_scrape_url_osint
 from openosint.tools.search_breach import run_breach_osint
@@ -222,7 +223,7 @@ _TOOL_CATALOG: list[dict] = [
         "requires_binary": [],
         "requires_env": ["BRIGHTDATA_API_KEY", "BRIGHTDATA_SERP_ZONE"],
         "env_hints": {
-            "BRIGHTDATA_API_KEY": "get.brightdata.com/984ni58s2oad",
+            "BRIGHTDATA_API_KEY": BRIGHTDATA_LINK_WEB,
             "BRIGHTDATA_SERP_ZONE": "Your Bright Data SERP zone name",
         },
     },
@@ -239,7 +240,7 @@ _TOOL_CATALOG: list[dict] = [
         "requires_binary": [],
         "requires_env": ["BRIGHTDATA_API_KEY", "BRIGHTDATA_UNLOCKER_ZONE"],
         "env_hints": {
-            "BRIGHTDATA_API_KEY": "get.brightdata.com/984ni58s2oad",
+            "BRIGHTDATA_API_KEY": BRIGHTDATA_LINK_WEB,
             "BRIGHTDATA_UNLOCKER_ZONE": "Your Bright Data Web Unlocker zone name",
         },
     },

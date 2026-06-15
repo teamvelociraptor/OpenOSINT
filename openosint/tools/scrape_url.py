@@ -15,7 +15,7 @@ the HTTP status code of the /request call itself.
 Requires BRIGHTDATA_API_KEY and BRIGHTDATA_UNLOCKER_ZONE environment variables.
 
 OpenOSINT earns a referral commission if you sign up through our link.
-Free tier: 5,000 requests/month — https://get.brightdata.com/984ni58s2oad
+Free tier: 5,000 requests/month — see openosint.brightdata.BRIGHTDATA_LINK_CLI
 
 # TODO: Future PR — add search_profile_social tool for social-media profile
 #       extraction once ToS and rate-limit guidance is confirmed with Bright Data.
@@ -30,6 +30,7 @@ import re
 
 import requests
 
+from openosint.brightdata import BRIGHTDATA_LINK_CLI
 from openosint.tools.exceptions import OSINTError, ToolExecutionError
 
 logger = logging.getLogger(__name__)
@@ -41,12 +42,12 @@ _URL_RE = re.compile(r"^https?://", re.IGNORECASE)
 _MISSING_KEY_MSG = (
     "Scan error: BRIGHTDATA_API_KEY environment variable is not set. "
     "A free tier (5,000 requests/month) is available — "
-    "sign up at https://get.brightdata.com/984ni58s2oad"
+    f"sign up at {BRIGHTDATA_LINK_CLI}"
 )
 _MISSING_ZONE_MSG = (
     "Scan error: BRIGHTDATA_UNLOCKER_ZONE environment variable is not set. "
     "Set it to your Bright Data Web Unlocker zone name (e.g. 'web_unlocker1'). "
-    "Create a zone at https://get.brightdata.com/984ni58s2oad"
+    f"Create a zone at {BRIGHTDATA_LINK_CLI}"
 )
 
 

@@ -172,9 +172,9 @@ Store all keys in a `.env` file at the project root (copy `.env.example`). `pyth
 | `CENSYS_API_ID` + `CENSYS_SECRET` | `search_censys` | Optional | Censys Search API — [get one](https://censys.io/account) |
 | `ABUSEIPDB_API_KEY` | `search_abuseipdb` | Optional | AbuseIPDB v2 — [get one](https://www.abuseipdb.com/account/api) |
 | `GITHUB_TOKEN` | `search_github` | Optional | GitHub API — raises rate limit from 60 to 5000 req/h — [get one](https://github.com/settings/tokens) |
-| `BRIGHTDATA_API_KEY` | `search_dorks_live`, `scrape_url` | Optional | Bright Data API key — [get one](https://get.brightdata.com/984ni58s2oad) (free tier: 5,000 req/month). *OpenOSINT earns a referral commission if you sign up through this link.* |
-| `BRIGHTDATA_SERP_ZONE` | `search_dorks_live` | Optional | Your Bright Data SERP API zone name (e.g. `serp_api1`). Create one in the [Bright Data dashboard](https://get.brightdata.com/984ni58s2oad). |
-| `BRIGHTDATA_UNLOCKER_ZONE` | `scrape_url` | Optional | Your Bright Data Web Unlocker zone name (e.g. `web_unlocker1`). Create one in the [Bright Data dashboard](https://get.brightdata.com/984ni58s2oad). |
+| `BRIGHTDATA_API_KEY` | `search_dorks_live`, `scrape_url` | Optional | Bright Data API key — [get one](https://get.brightdata.com/984ni58s2oad?utm_source=github&utm_medium=readme)¹ (free tier: 5,000 req/month). |
+| `BRIGHTDATA_SERP_ZONE` | `search_dorks_live` | Optional | Your Bright Data SERP API zone name (e.g. `serp_api1`). Create one in the [Bright Data dashboard](https://get.brightdata.com/984ni58s2oad?utm_source=github&utm_medium=readme)¹. |
+| `BRIGHTDATA_UNLOCKER_ZONE` | `scrape_url` | Optional | Your Bright Data Web Unlocker zone name (e.g. `web_unlocker1`). Create one in the [Bright Data dashboard](https://get.brightdata.com/984ni58s2oad?utm_source=github&utm_medium=readme)¹. |
 
 **Optional Python packages:**
 
@@ -438,9 +438,7 @@ The warning line only appears when `abuseConfidenceScore` exceeds 50%.
 
 ### search_dorks_live
 
-Executes live Google dork queries for a target through the [Bright Data SERP API](https://get.brightdata.com/984ni58s2oad), returning structured results (title, URL, snippet) for each dork. Reuses the same templates as `generate_dorks` — the offline tool remains unchanged. Each dork is a separate billable API call; defaults to 5 dorks per run. Requires `BRIGHTDATA_API_KEY` and `BRIGHTDATA_SERP_ZONE`.
-
-*OpenOSINT earns a referral commission if you sign up through this link.*
+Executes live Google dork queries for a target through the [Bright Data SERP API](https://get.brightdata.com/984ni58s2oad?utm_source=github&utm_medium=readme)¹, returning structured results (title, URL, snippet) for each dork. Reuses the same templates as `generate_dorks` — the offline tool remains unchanged. Each dork is a separate billable API call; defaults to 5 dorks per run. Requires `BRIGHTDATA_API_KEY` and `BRIGHTDATA_SERP_ZONE`.
 
 ```bash
 openosint search-dorks-live "john doe"
@@ -464,9 +462,7 @@ Bright Data live dork search for 'john doe' (5 queries):
 
 ### scrape_url
 
-Fetches any public URL through the [Bright Data Web Unlocker API](https://get.brightdata.com/984ni58s2oad), bypassing Cloudflare, CAPTCHA, and other bot-protection mechanisms. Returns clean Markdown using the API's native `data_format: "markdown"` conversion. A general primitive the AI agent can chain after discovering URLs with other tools. Requires `BRIGHTDATA_API_KEY` and `BRIGHTDATA_UNLOCKER_ZONE`.
-
-*OpenOSINT earns a referral commission if you sign up through this link.*
+Fetches any public URL through the [Bright Data Web Unlocker API](https://get.brightdata.com/984ni58s2oad?utm_source=github&utm_medium=readme)¹, bypassing Cloudflare, CAPTCHA, and other bot-protection mechanisms. Returns clean Markdown using the API's native `data_format: "markdown"` conversion. A general primitive the AI agent can chain after discovering URLs with other tools. Requires `BRIGHTDATA_API_KEY` and `BRIGHTDATA_UNLOCKER_ZONE`.
 
 ```bash
 openosint scrape https://example.com
@@ -777,6 +773,8 @@ OpenOSINT is open source under the [MIT License](./LICENSE) — free for persona
 For commercial use in closed-source products, a separate license is required. → [Full details](./COMMERCIAL-LICENSE.md)
 
 ---
+
+¹ Bright Data links in this README are affiliate/referral links — OpenOSINT earns a commission if you sign up through them, at no extra cost to you.
 
 *For authorized security research only. See [DISCLAIMER.md](DISCLAIMER.md).*
 

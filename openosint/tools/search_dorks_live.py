@@ -16,7 +16,7 @@ parsed SERP data directly as {"organic": [...]} — no envelope wrapper.
 Requires BRIGHTDATA_API_KEY and BRIGHTDATA_SERP_ZONE environment variables.
 
 OpenOSINT earns a referral commission if you sign up through our link.
-Free tier: 5,000 requests/month — https://get.brightdata.com/984ni58s2oad
+Free tier: 5,000 requests/month — see openosint.brightdata.BRIGHTDATA_LINK_CLI
 """
 
 from __future__ import annotations
@@ -28,6 +28,7 @@ import urllib.parse
 
 import requests
 
+from openosint.brightdata import BRIGHTDATA_LINK_CLI
 from openosint.tools.exceptions import OSINTError, ToolExecutionError
 from openosint.tools.generate_dorks import _DORK_TEMPLATES
 
@@ -41,12 +42,12 @@ _GOOGLE_SEARCH_BASE = "https://www.google.com/search?q="
 _MISSING_KEY_MSG = (
     "Scan error: BRIGHTDATA_API_KEY environment variable is not set. "
     "A free tier (5,000 requests/month) is available — "
-    "sign up at https://get.brightdata.com/984ni58s2oad"
+    f"sign up at {BRIGHTDATA_LINK_CLI}"
 )
 _MISSING_ZONE_MSG = (
     "Scan error: BRIGHTDATA_SERP_ZONE environment variable is not set. "
     "Set it to your Bright Data SERP API zone name (e.g. 'serp_api1'). "
-    "Create a zone at https://get.brightdata.com/984ni58s2oad"
+    f"Create a zone at {BRIGHTDATA_LINK_CLI}"
 )
 
 
