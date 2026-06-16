@@ -70,6 +70,14 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Lead magnet capture page -->
+  <url>
+    <loc>https://openosint.tech/free-prompts/</loc>
+    <lastmod>2026-06-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Blog posts -->
   <url>
     <loc>https://openosint.tech/blog/what-is-osint.html</loc>
