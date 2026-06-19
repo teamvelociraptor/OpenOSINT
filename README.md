@@ -69,41 +69,13 @@ pip install openosint
 </tr>
 </table>
 
-## OpenOSINT Cloud — Hosted IP & Domain Intelligence API
+## Custom Integrations
 
-Hosted REST and MCP API for **IP and domain infrastructure intelligence** — geolocation, ISP/ASN, proxy/VPN/datacenter/Tor detection, IP abuse reputation, DNS records, and subdomain enumeration. No infra to manage. IP2Location server key included — no setup required.
+Need OpenOSINT wired into your SOC, fraud, threat-intel, or AI-agent stack?
+I build bespoke OSINT & MCP integrations for teams — you bring the data
+sources and compliance requirements, I deliver a working integration.
 
-> **Privacy:** OpenOSINT Cloud does not search for personal data about individuals, does not use leaked or breached data sources, and does not perform people-search lookups. Scoped exclusively to IP addresses and domain names.
-
-**REST quick start**
-
-```bash
-curl -s -X POST https://api.openosint.tech/v1/enrich \
-  -H "X-API-Key: YOUR_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"tool":"search_ip","target":"8.8.8.8"}'
-```
-
-**MCP quick start** — add to `claude_desktop_config.json` (or any MCP client):
-
-```json
-{
-  "mcpServers": {
-    "openosint-cloud": {
-      "url": "https://api.openosint.tech/mcp",
-      "headers": { "Authorization": "Bearer YOUR_KEY" }
-    }
-  }
-}
-```
-
-| Plan | Type | Price | Credits |
-|------|------|-------|---------|
-| Pay-as-you-go | One-time | $10 | 100 calls |
-| Starter | Monthly | $19/mo | 1,000 calls/mo |
-| Pro | Monthly | $49/mo | 5,000 calls/mo |
-
-→ **[Get started →](https://buy.polar.sh/polar_cl_45nAq1h8jAxfrHXJNSFTXQ9jc5pk6mzOi4zSj4Dxypb)** &nbsp;·&nbsp; [Full docs & MCP setup →](https://openosint.tech/cloud/)
+→ **[Get in touch](mailto:openosint@yahoo.com?subject=OpenOSINT%20Custom%20Integration)**
 
 ---
 
@@ -736,29 +708,6 @@ Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for
 |---|---|
 | [@consocio](https://github.com/consocio) | venv/uv-tool binary resolution fix — co-installed tools are now found without a separate activation step ([#6](https://github.com/OpenOSINT/OpenOSINT/pull/6)) |
 
-## OpenOSINT Cloud
-
-**OpenOSINT Cloud** is a hosted REST and MCP API for IP and domain infrastructure intelligence — geolocation, ISP/ASN, proxy/VPN/datacenter/Tor detection, IP abuse reputation, DNS records, and subdomain enumeration. Built for developers and security/anti-fraud teams. One call, one bill, no infra to manage. Billing via [Polar](https://polar.sh) (Merchant of Record, handles international VAT automatically).
-
-> **Privacy by design.** OpenOSINT Cloud does not search for or expose personal data about individuals and does not use leaked or breached data sources. It is scoped exclusively to IP addresses and domain names.
-
-| Plan | Type | Price | Credits |
-|---|---|---|---|
-| Pay-as-you-go | One-time | $10 | 100 |
-| Starter | Subscription | $19 / mo | 1,000 / mo |
-| Pro | Subscription | $49 / mo | 5,000 / mo |
-
-→ **[openosint.tech/cloud/](https://openosint.tech/cloud/)** — landing page &nbsp;·&nbsp; **[Get started →](https://buy.polar.sh/polar_cl_45nAq1h8jAxfrHXJNSFTXQ9jc5pk6mzOi4zSj4Dxypb)**
-
-→ **[CLOUD.md](CLOUD.md)** — deploy & Polar setup guide
-
-**Legal:**
-[Terms of Service](https://openosint.tech/terms/) &nbsp;·&nbsp;
-[Privacy Policy](https://openosint.tech/privacy/) &nbsp;·&nbsp;
-[Acceptable Use Policy](https://openosint.tech/acceptable-use/) &nbsp;·&nbsp;
-[Sub-processors](https://openosint.tech/subprocessors/)
-
----
 
 ## SERVICES
 
