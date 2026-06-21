@@ -153,4 +153,5 @@ openosint/index.html.txt
 openosint.tape
 
 
-_leadmagnet/
+# _leadmagnet/ source is tracked; only ignore the local build artifact
+_leadmagnet/openosint-free-prompts.pdf
