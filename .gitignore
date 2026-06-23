@@ -36,8 +36,9 @@ config.yml
 # Exception: GitHub metadata files named config.yml are not secrets
 !.github/**
 
-# OpenOSINT generated output
-reports/
+# OpenOSINT generated output — ignore contents, keep directory placeholder
+reports/*
+!reports/.gitkeep
 *.cast
 
 # Media: generated GIFs and MP4s (tapes are versioned, output is not)
@@ -139,7 +140,6 @@ coverage.json
 researcher*.txt
 testuser*.txt
 *.osint.txt
-reports/
 
 # Empty placeholder files
 # openosint/index.html.txt is 0 bytes — accidentally created stub
