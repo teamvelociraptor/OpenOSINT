@@ -722,3 +722,60 @@ class TestPersonPlaybook:
             )
 
         assert report_path.exists()
+
+
+# ---------------------------------------------------------------------------
+# TestToolErrorDetection — self-caught errors must not render as SUCCESS
+# ---------------------------------------------------------------------------
+
+_PASTE_NETWORK_ERROR = (
+    "Scan error: Network error querying psbdmp.ws: HTTPSConnectionPool"
+    "(host='psbdmp.ws', port=443): Max retries exceeded"
+)
+_EMAIL_INVALID_INPUT = (
+    "Scan error: holehe exited with code 1: "
+    "[-] Please enter a target email !\nExample : holehe email@example.com"
+)
+
+
+class TestToolErrorDetection:
+    async def test_paste_network_error_renders_error_block(self, tmp_path):
+        from openosint.playbooks.loader import load_recipe
+        from openosint.playbooks.runner import TOOL_MAP, run_playbook
+
+        recipe = load_recipe("person")
+        mocks = {
+            "generate_dorks": AsyncMock(return_value=_DORKS_OUTPUT),
+            "search_paste": AsyncMock(return_value=_PASTE_NETWORK_ERROR),
+            "search_username": AsyncMock(return_value=_USER_OUTPUT),
+            "search_email": AsyncMock(return_value=_HOLEHE_OUTPUT),
+        }
+        with patch.dict(TOOL_MAP, mocks):
+            report_path = await run_playbook(
+                recipe, "johndoe99", is_pdf_disabled=True, reports_dir=tmp_path
+            )
+
+        content = report_path.read_text(encoding="utf-8")
+        paste_section = content.split("## Paste Site Mentions")[1].split("##")[0]
+        assert "⚠ Step error" in content, "network error should render as ⚠ Step error"
+        assert "```" not in paste_section, "paste error must not appear in a fenced code block"
+
+    async def test_email_invalid_input_renders_not_applicable(self, tmp_path):
+        from openosint.playbooks.loader import load_recipe
+        from openosint.playbooks.runner import TOOL_MAP, run_playbook
+
+        recipe = load_recipe("person")
+        mocks = {
+            "generate_dorks": AsyncMock(return_value=_DORKS_OUTPUT),
+            "search_paste": AsyncMock(return_value=_PASTE_OUTPUT),
+            "search_username": AsyncMock(return_value=_USER_OUTPUT),
+            "search_email": AsyncMock(return_value=_EMAIL_INVALID_INPUT),
+        }
+        with patch.dict(TOOL_MAP, mocks):
+            report_path = await run_playbook(
+                recipe, "johndoe99", is_pdf_disabled=True, reports_dir=tmp_path
+            )
+
+        content = report_path.read_text(encoding="utf-8")
+        assert "Not applicable for this target type" in content
+        assert "No registered accounts found" not in content

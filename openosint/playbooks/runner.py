@@ -83,9 +83,38 @@ TOOL_REQUIREMENTS: dict[str, _Req] = {
 
 class StepState(Enum):
     NOT_CONFIGURED = "not_configured"
+    INVALID_INPUT = "invalid_input"
     EMPTY = "empty"
     ERROR = "error"
     SUCCESS = "success"
+
+
+# ---------------------------------------------------------------------------
+# Self-caught error detection
+# Tools like run_paste_osint / run_email_osint catch their own exceptions and
+# return error strings rather than raising.  These prefixes / phrases identify
+# those strings so _run_step can assign the correct state instead of SUCCESS.
+# ---------------------------------------------------------------------------
+
+_TOOL_ERROR_PREFIXES: tuple[str, ...] = (
+    "Scan error:",
+    "Internal error:",
+    "Network error:",
+    "Connection error:",
+    "Tool error:",
+)
+
+# "please enter" catches holehe's "Please enter a target email !" message.
+_INVALID_INPUT_MARKERS: tuple[str, ...] = ("please enter",)
+
+
+def _looks_like_invalid_input(output: str) -> bool:
+    return any(marker in output.lower() for marker in _INVALID_INPUT_MARKERS)
+
+
+def _looks_like_tool_error(output: str) -> bool:
+    stripped = output.strip()
+    return any(stripped.startswith(prefix) for prefix in _TOOL_ERROR_PREFIXES)
 
 
 # ---------------------------------------------------------------------------
@@ -125,6 +154,13 @@ async def _run_step(tool: str, target: str) -> tuple[StepState, str]:
 
     if not output or not output.strip():
         return StepState.EMPTY, ""
+
+    # Detect self-caught errors returned as plain strings — check invalid
+    # input first (more specific) before the generic error prefix check.
+    if _looks_like_invalid_input(output):
+        return StepState.INVALID_INPUT, output
+    if _looks_like_tool_error(output):
+        return StepState.ERROR, output
 
     return StepState.SUCCESS, output
 
@@ -642,7 +678,8 @@ def _build_summary(
     seed = make_entity(seed_type, target, 1.0, "playbook")
 
     completed = sum(1 for _, _, state, _ in step_results if state == StepState.SUCCESS)
-    skipped = sum(1 for _, _, state, _ in step_results if state == StepState.NOT_CONFIGURED)
+    skipped_nc = sum(1 for _, _, state, _ in step_results if state == StepState.NOT_CONFIGURED)
+    skipped_inv = sum(1 for _, _, state, _ in step_results if state == StepState.INVALID_INPUT)
     total = len(step_results)
 
     # Extract entities per tool so each count can be attributed to its source
@@ -659,7 +696,12 @@ def _build_summary(
             bucket.setdefault(entity.type, set()).add(entity.value)
 
     lines: list[str] = []
-    skip_note = f" ({skipped} skipped — not configured)" if skipped else ""
+    skip_parts: list[str] = []
+    if skipped_nc:
+        skip_parts.append(f"{skipped_nc} skipped — not configured")
+    if skipped_inv:
+        skip_parts.append(f"{skipped_inv} not applicable")
+    skip_note = f" ({', '.join(skip_parts)})" if skip_parts else ""
     lines.append(f"- **Steps completed:** {completed}/{total}{skip_note}")
 
     # Subdomains: only enumeration step — not WHOIS nameservers
@@ -776,6 +818,8 @@ def _build_report(
             lines.append(f"> ℹ️ Skipped — set {missing_str} to enable this section.")
             if note:
                 lines.append(f"> {note}")
+        elif state == StepState.INVALID_INPUT:
+            lines.append("> ℹ️ Not applicable for this target type.")
         elif state == StepState.EMPTY:
             lines.append("> No results found.")
         else:
