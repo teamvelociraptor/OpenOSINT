@@ -1,16 +1,21 @@
 # tests/test_web_server.py
 """
-Unit tests for web_server.py Ollama streaming and tool-argument handling.
+Unit tests for web_server.py Ollama streaming, tool-argument handling,
+BYOK key threading, CORS, rate limiting, and /api/tools metadata.
 
-All HTTP calls are mocked — no live Ollama instance required.
+All HTTP calls are mocked — no live server or API keys required.
 """
 
 from __future__ import annotations
 
 import json
+import logging
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
+import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
 
 
 # ---------------------------------------------------------------------------
@@ -443,10 +448,322 @@ class TestSearchFootprintWebRegistration:
     async def test_run_tool_dispatches_footprint(self):
         from openosint.web_server import _run_tool
 
-        async def fake_footprint(target, max_queries=3, timeout_seconds=30):
+        async def fake_footprint(target, max_queries=3, timeout_seconds=30, *, api_keys=None):
             return f"footprint:{target}"
 
         with patch("openosint.web_server.run_footprint_osint", fake_footprint):
             result = await _run_tool("search_footprint", "john doe")
 
         assert result == "footprint:john doe"
+
+
+# ---------------------------------------------------------------------------
+# HTTP endpoint fixtures (BYOK / CORS / rate-limit / /api/tools tests)
+# ---------------------------------------------------------------------------
+
+
+@pytest_asyncio.fixture
+async def http_client():
+    from openosint.web_server import create_app, _RATE_STORE
+
+    _RATE_STORE.clear()
+    app = create_app()
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        yield c
+    _RATE_STORE.clear()
+
+
+# ---------------------------------------------------------------------------
+# BYOK: per-request api_keys forwarded to runner
+# ---------------------------------------------------------------------------
+
+
+class TestByokKeyForwarding:
+    async def test_request_key_reaches_tool_runner(self, http_client):
+        """api_keys in body is forwarded; runner receives the value."""
+        received: list = []
+
+        async def fake_shodan(query, timeout_seconds=30, *, api_key=None):
+            received.append(api_key)
+            return "ok"
+
+        with patch("openosint.web_server.run_shodan_osint", new=fake_shodan):
+            resp = await http_client.post(
+                "/api/run/search_shodan",
+                json={"input": "8.8.8.8", "api_keys": {"SHODAN_API_KEY": "byok-abc"}},
+            )
+
+        assert resp.status_code == 200
+        assert received == ["byok-abc"]
+
+    async def test_env_fallback_when_no_body_key(self, http_client):
+        """Runner receives None when api_keys absent; tool falls back to env."""
+        received: list = []
+
+        async def fake_shodan(query, timeout_seconds=30, *, api_key=None):
+            received.append(api_key)
+            return "ok"
+
+        with (
+            patch("openosint.web_server.run_shodan_osint", new=fake_shodan),
+            patch.dict(os.environ, {"SHODAN_API_KEY": "env-key"}),
+        ):
+            resp = await http_client.post(
+                "/api/run/search_shodan",
+                json={"input": "8.8.8.8"},
+            )
+
+        assert resp.status_code == 200
+        assert received == [None]  # runner gets None; tool resolves from env
+
+    async def test_multi_key_tool_receives_full_dict(self, http_client):
+        """Multi-key tools (censys) receive the whole api_keys dict."""
+        received: list = []
+
+        async def fake_censys(target, timeout_seconds=30, *, api_keys=None):
+            received.append(api_keys)
+            return "ok"
+
+        with patch("openosint.web_server.run_censys_osint", new=fake_censys):
+            supplied = {"CENSYS_API_ID": "id-111", "CENSYS_SECRET": "sec-222"}
+            resp = await http_client.post(
+                "/api/run/search_censys",
+                json={"input": "example.com", "api_keys": supplied},
+            )
+
+        assert resp.status_code == 200
+        assert received[0] == supplied
+
+
+# ---------------------------------------------------------------------------
+# key_required structured response
+# ---------------------------------------------------------------------------
+
+
+class TestKeyRequired:
+    async def test_missing_single_key_returns_key_required(self, http_client):
+        """No key in body or env → key_required:true with the missing key listed."""
+        backup = os.environ.pop("SHODAN_API_KEY", None)
+        try:
+            resp = await http_client.post(
+                "/api/run/search_shodan",
+                json={"input": "8.8.8.8"},
+            )
+        finally:
+            if backup is not None:
+                os.environ["SHODAN_API_KEY"] = backup
+
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["key_required"] is True
+        assert "SHODAN_API_KEY" in body["missing_keys"]
+        assert body["status"] == "error"
+
+    async def test_partial_multi_key_lists_only_missing(self, http_client):
+        """Censys: supplying one key in body, other absent → only missing one listed."""
+        backup_id = os.environ.pop("CENSYS_API_ID", None)
+        backup_sec = os.environ.pop("CENSYS_SECRET", None)
+        try:
+            resp = await http_client.post(
+                "/api/run/search_censys",
+                json={"input": "example.com", "api_keys": {"CENSYS_API_ID": "my-id"}},
+            )
+        finally:
+            if backup_id is not None:
+                os.environ["CENSYS_API_ID"] = backup_id
+            if backup_sec is not None:
+                os.environ["CENSYS_SECRET"] = backup_sec
+
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["key_required"] is True
+        assert body["missing_keys"] == ["CENSYS_SECRET"]
+
+    async def test_both_keys_in_body_no_key_required(self, http_client):
+        """All required keys present in body → no key_required check triggered."""
+        backup_id = os.environ.pop("CENSYS_API_ID", None)
+        backup_sec = os.environ.pop("CENSYS_SECRET", None)
+
+        async def fake_censys(target, timeout_seconds=30, *, api_keys=None):
+            return "ok"
+
+        try:
+            with patch("openosint.web_server.run_censys_osint", new=fake_censys):
+                resp = await http_client.post(
+                    "/api/run/search_censys",
+                    json={
+                        "input": "example.com",
+                        "api_keys": {"CENSYS_API_ID": "x", "CENSYS_SECRET": "y"},
+                    },
+                )
+        finally:
+            if backup_id is not None:
+                os.environ["CENSYS_API_ID"] = backup_id
+            if backup_sec is not None:
+                os.environ["CENSYS_SECRET"] = backup_sec
+
+        assert resp.status_code == 200
+        assert resp.json().get("key_required") is None
+
+    async def test_keyless_tool_never_gets_key_required(self, http_client):
+        """search_whois (no required keys) must not return key_required."""
+        async def fake_whois(domain, timeout_seconds=15):
+            return "WHOIS data"
+
+        with patch("openosint.web_server.run_whois_osint", new=fake_whois):
+            resp = await http_client.post(
+                "/api/run/search_whois",
+                json={"input": "example.com"},
+            )
+
+        assert resp.status_code == 200
+        assert resp.json().get("key_required") is None
+
+
+# ---------------------------------------------------------------------------
+# CORS
+# ---------------------------------------------------------------------------
+
+
+class TestCors:
+    async def test_preflight_allowed_origin_returns_header(self, http_client):
+        resp = await http_client.options(
+            "/api/tools",
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": "GET",
+            },
+        )
+        assert resp.status_code in (200, 204)
+        assert resp.headers.get("access-control-allow-origin") == "http://localhost:3000"
+
+    async def test_disallowed_origin_no_allow_header(self, http_client):
+        resp = await http_client.get(
+            "/api/tools",
+            headers={"Origin": "https://attacker.example.com"},
+        )
+        acao = resp.headers.get("access-control-allow-origin", "")
+        assert acao != "https://attacker.example.com"
+
+    async def test_allow_credentials_not_true(self, http_client):
+        resp = await http_client.options(
+            "/api/tools",
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": "GET",
+            },
+        )
+        cred = resp.headers.get("access-control-allow-credentials", "false")
+        assert cred.lower() != "true"
+
+
+# ---------------------------------------------------------------------------
+# GET /api/tools — catalog shape
+# ---------------------------------------------------------------------------
+
+
+class TestToolsCatalog:
+    async def test_all_entries_have_required_fields(self, http_client):
+        resp = await http_client.get("/api/tools")
+        assert resp.status_code == 200
+        for tool in resp.json():
+            assert "tool_type" in tool, f"{tool['name']} missing tool_type"
+            assert tool["tool_type"] in ("A", "B")
+            assert "required_keys" in tool
+            assert isinstance(tool["required_keys"], list)
+            assert "parameters" in tool
+            assert tool["parameters"]["type"] == "object"
+            assert "input" in tool["parameters"]["properties"]
+
+    async def test_new_tools_present(self, http_client):
+        resp = await http_client.get("/api/tools")
+        names = {t["name"] for t in resp.json()}
+        assert "search_abuseipdb" in names
+        assert "search_dns" in names
+        assert "search_github" in names
+
+    async def test_subprocess_tools_are_type_b(self, http_client):
+        resp = await http_client.get("/api/tools")
+        type_b = {t["name"] for t in resp.json() if t["tool_type"] == "B"}
+        for name in ("search_email", "search_username", "search_domain", "search_phone"):
+            assert name in type_b
+
+    async def test_abuseipdb_required_keys(self, http_client):
+        resp = await http_client.get("/api/tools")
+        entry = next(t for t in resp.json() if t["name"] == "search_abuseipdb")
+        assert entry["required_keys"] == ["ABUSEIPDB_API_KEY"]
+
+    async def test_censys_required_keys_both_present(self, http_client):
+        resp = await http_client.get("/api/tools")
+        entry = next(t for t in resp.json() if t["name"] == "search_censys")
+        assert "CENSYS_API_ID" in entry["required_keys"]
+        assert "CENSYS_SECRET" in entry["required_keys"]
+
+
+# ---------------------------------------------------------------------------
+# Rate limiting (keyless tools)
+# ---------------------------------------------------------------------------
+
+
+class TestRateLimiting:
+    async def test_keyless_tool_blocked_after_limit(self, http_client):
+        from openosint.web_server import _RL_MAX_REQS
+
+        async def fake_whois(domain, timeout_seconds=15):
+            return "ok"
+
+        statuses = []
+        with patch("openosint.web_server.run_whois_osint", new=fake_whois):
+            for _ in range(_RL_MAX_REQS + 1):
+                r = await http_client.post(
+                    "/api/run/search_whois", json={"input": "example.com"}
+                )
+                statuses.append(r.status_code)
+
+        assert statuses[0] == 200
+        assert statuses[-1] == 429
+
+    async def test_keyed_tool_not_rate_limited(self, http_client):
+        """search_shodan is not in _KEYLESS_TOOLS; no 429 even without a key."""
+        from openosint.web_server import _RL_MAX_REQS
+
+        backup = os.environ.pop("SHODAN_API_KEY", None)
+        try:
+            statuses = []
+            for _ in range(_RL_MAX_REQS + 5):
+                r = await http_client.post(
+                    "/api/run/search_shodan", json={"input": "8.8.8.8"}
+                )
+                statuses.append(r.status_code)
+        finally:
+            if backup is not None:
+                os.environ["SHODAN_API_KEY"] = backup
+
+        assert 429 not in statuses  # gets key_required (200), never rate-limit (429)
+
+
+# ---------------------------------------------------------------------------
+# api_keys absent from logs (unconditional)
+# ---------------------------------------------------------------------------
+
+
+class TestApiKeysNotLogged:
+    async def test_secret_key_absent_from_log_records(self, http_client, caplog):
+        secret = "top-secret-key-abc123"
+
+        async def fake_shodan(query, timeout_seconds=30, *, api_key=None):
+            return "ok"
+
+        with (
+            patch("openosint.web_server.run_shodan_osint", new=fake_shodan),
+            caplog.at_level(logging.DEBUG),
+        ):
+            await http_client.post(
+                "/api/run/search_shodan",
+                json={"input": "8.8.8.8", "api_keys": {"SHODAN_API_KEY": secret}},
+            )
+
+        for record in caplog.records:
+            assert secret not in record.getMessage(), (
+                f"Secret leaked in log: {record.getMessage()!r}"
+            )
