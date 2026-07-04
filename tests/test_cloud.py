@@ -386,6 +386,32 @@ async def test_upstream_error_leaves_credits_unchanged(client):
     assert db._MEMORY_CUSTOMERS["key-err"].credits == 5
 
 
+async def test_platform_pool_upstream_error_charges_zero_credits(client):
+    """A >1-cost platform tool (Shodan) must not charge on upstream failure."""
+    _seed("key-shodan-err", credits=10)
+
+    error_result = {
+        "tool": "search_shodan",
+        "target": "1.2.3.4",
+        "timestamp": "2026-01-01T00:00:00+00:00",
+        "results": ["Scan error: Shodan quota exceeded"],
+        "error": None,
+    }
+
+    with patch("cloud.tools.dispatch", new=AsyncMock(return_value=error_result)):
+        with patch.dict(os.environ, {"SHODAN_API_KEY": "srv_shodan_key"}):
+            resp = await client.post(
+                "/v1/enrich",
+                json={"tool": "search_shodan", "target": "1.2.3.4"},
+                headers={"X-API-Key": "key-shodan-err"},
+            )
+
+    assert resp.status_code == 200
+    assert resp.json()["results"] == ["Scan error: Shodan quota exceeded"]
+    assert resp.json()["credits_left"] == 10
+    assert db._MEMORY_CUSTOMERS["key-shodan-err"].credits == 10
+
+
 # ── (j) allow-list shape and removed-tool 400s ───────────────────────────────
 
 from cloud.tools import ALLOW_LIST as _ALLOW_LIST
