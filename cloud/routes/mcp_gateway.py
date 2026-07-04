@@ -7,21 +7,20 @@ No person-search, breach, or leaked-data tools.
 
 Auth: Authorization: Bearer <openosint-cloud-api-key>
 Metering: 1 credit per successful call — same rules as /v1/enrich.
-All existing functions (dispatch, _resolve_key, decrement_credits) are reused.
+All existing functions (dispatch, resolve_key, decrement_credits) are reused.
 """
 from __future__ import annotations
 
 import asyncio
 import logging
-import os
 from contextvars import ContextVar
 
 from mcp.server.fastmcp import FastMCP
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from cloud import db, keys, tools
+from cloud import db, tools
 from cloud.config import CHECKOUT_URLS, TOOL_TIMEOUT_SECONDS
-from cloud.key_sources import TOOL_KEY_CONFIG, KeySource
+from cloud.key_sources import resolve_key
 
 logger = logging.getLogger(__name__)
 
@@ -37,25 +36,6 @@ _mcp = FastMCP(
     "OpenOSINT Cloud",
     streamable_http_path="/",
 )
-
-
-# ── shared business logic (mirrors cloud/routes/enrich.py) ───────────────────
-
-async def _resolve_key(tool: str, customer: db.Customer) -> str | None:
-    """Resolve upstream API key from TOOL_KEY_CONFIG — identical to /v1/enrich."""
-    cfg = TOOL_KEY_CONFIG.get(tool)
-    if cfg is None or cfg.source == KeySource.none:
-        return None
-    if cfg.source == KeySource.platform:
-        return os.environ.get(cfg.env_var or "", "") or None
-    stored = await keys.get_key(customer.api_key, cfg.provider)
-    if cfg.source == KeySource.tenant and stored is None:
-        raise ValueError(
-            f"Tool '{tool}' requires a '{cfg.provider}' API key. "
-            f"Add it via: POST /v1/keys "
-            f'{{"provider": "{cfg.provider}", "secret": "your_key"}}'
-        )
-    return stored
 
 
 def _credits_error(plan: str) -> str:
@@ -84,7 +64,7 @@ async def _run_mcp_tool(tool_name: str, target: str) -> str:
         )
 
     try:
-        upstream_key = await _resolve_key(tool_name, customer)
+        upstream_key = await resolve_key(tool_name, customer.api_key)
     except ValueError as exc:
         return f"Error: {exc}"
 

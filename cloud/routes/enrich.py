@@ -3,15 +3,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from cloud import db, keys, polar, tools
+from cloud import db, polar, tools
 from cloud.auth import get_customer
 from cloud.config import CHECKOUT_URLS, TOOL_TIMEOUT_SECONDS
-from cloud.key_sources import TOOL_KEY_CONFIG, KeySource
+from cloud.key_sources import MissingCredentialError, resolve_key
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +48,11 @@ async def enrich(
             ),
         )
 
-    # Resolve upstream key before any credit touch — 422 on missing customer key
-    api_key = await _resolve_key(body.tool, customer)
+    # Resolve upstream key before any credit touch — 422 on missing tenant key
+    try:
+        api_key = await resolve_key(body.tool, customer.api_key)
+    except MissingCredentialError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
 
     # 402 — fast pre-check (avoids a DB round-trip for obviously empty accounts)
     if customer.credits <= 0:
@@ -101,31 +103,6 @@ async def enrich(
         error=result["error"],
         credits_left=new_credits,
     )
-
-
-async def _resolve_key(tool: str, customer: db.Customer) -> str | None:
-    """Return the upstream API key for tool, per TOOL_KEY_CONFIG."""
-    cfg = TOOL_KEY_CONFIG.get(tool)
-    if cfg is None or cfg.source == KeySource.none:
-        return None
-
-    if cfg.source == KeySource.platform:
-        return os.environ.get(cfg.env_var, "") or None
-
-    # tenant or tenant_optional — look up from the customer's encrypted store
-    stored = await keys.get_key(customer.api_key, cfg.provider)
-
-    if cfg.source == KeySource.tenant and stored is None:
-        raise HTTPException(
-            status_code=422,
-            detail=(
-                f"Tool '{tool}' requires a '{cfg.provider}' API key. "
-                f"Add it with: POST /v1/keys "
-                f'{{\"provider\": \"{cfg.provider}\", \"secret\": \"your_key\"}}'
-            ),
-        )
-
-    return stored  # None is valid for tenant_optional when key is absent
 
 
 def _raise_402(plan: str) -> None:

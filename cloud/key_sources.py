@@ -16,8 +16,11 @@ Canonical provider strings (used by POST /v1/keys and 422 messages):
 """
 from __future__ import annotations
 
+import os
 from enum import Enum
 from typing import NamedTuple
+
+from cloud import keys
 
 
 class KeySource(str, Enum):
@@ -44,3 +47,43 @@ TOOL_KEY_CONFIG: dict[str, ToolKeyConfig] = {
     "search_dns":         ToolKeyConfig(None,                  KeySource.none,     provider=None),
     "search_domain":      ToolKeyConfig(None,                  KeySource.none,     provider=None),
 }
+
+
+class MissingCredentialError(ValueError):
+    """Raised when a tenant-required tool has no stored BYOK key.
+
+    Subclasses ValueError so the MCP gateway's existing `except ValueError`
+    handling keeps working unchanged.
+    """
+
+    def __init__(self, tool: str, provider: str) -> None:
+        self.tool = tool
+        self.provider = provider
+        super().__init__(
+            f"Tool '{tool}' requires a connected '{provider}' key. "
+            f"Connect it with: POST /v1/keys "
+            f'{{"provider": "{provider}", "secret": "your_key"}}'
+        )
+
+
+async def resolve_key(tool: str, customer_api_key: str) -> str | None:
+    """Return the upstream API key for `tool`, per TOOL_KEY_CONFIG.
+
+    Raises MissingCredentialError when the tool's source is `tenant` and no
+    key is stored for this customer. Shared by /v1/enrich and the MCP gateway
+    so both surfaces resolve credentials identically.
+    """
+    cfg = TOOL_KEY_CONFIG.get(tool)
+    if cfg is None or cfg.source == KeySource.none:
+        return None
+
+    if cfg.source == KeySource.platform:
+        return os.environ.get(cfg.env_var or "", "") or None
+
+    # tenant or tenant_optional — look up from the customer's encrypted store
+    stored = await keys.get_key(customer_api_key, cfg.provider)
+
+    if cfg.source == KeySource.tenant and stored is None:
+        raise MissingCredentialError(tool, cfg.provider)
+
+    return stored  # None is valid for tenant_optional when key is absent
