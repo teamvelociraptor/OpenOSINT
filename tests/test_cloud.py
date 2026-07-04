@@ -500,3 +500,22 @@ async def test_dispatch_does_not_attribute_other_tools():
         result = await cloud_tools.dispatch("search_dns", "example.com", api_key=None)
 
     assert "Data provided by Shodan (shodan.io)." not in result["results"]
+
+
+async def test_shodan_attribution_reaches_rest_response_body(client):
+    """Attribution must survive to the actual JSON body the client parses,
+    not just the internal dispatch() dict — real dispatch() runs here, only
+    the low-level upstream call is mocked."""
+    _seed("key-shodan-attr", credits=10)
+
+    with patch("cloud.tools.run_shodan_osint", new=AsyncMock(return_value="[Shodan] Host: 1.2.3.4")):
+        with patch.dict(os.environ, {"SHODAN_API_KEY": "srv_shodan_key"}):
+            resp = await client.post(
+                "/v1/enrich",
+                json={"tool": "search_shodan", "target": "1.2.3.4"},
+                headers={"X-API-Key": "key-shodan-attr"},
+            )
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["results"] == ["[Shodan] Host: 1.2.3.4", "Data provided by Shodan (shodan.io)."]

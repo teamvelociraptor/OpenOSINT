@@ -17,6 +17,7 @@ Coverage:
 from __future__ import annotations
 
 import contextlib
+import os
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -295,3 +296,20 @@ async def test_auth_middleware_sets_none_for_missing_header():
 
     await middleware(scope, _noop_receive, _noop_send)
     assert captured[0] is None
+
+
+# ── (i) Shodan attribution reaches the MCP text result ───────────────────────
+
+
+async def test_shodan_attribution_reaches_mcp_text_result():
+    """_run_mcp_tool's return value is the exact string FastMCP wraps as the
+    tool's TextContent block — what an MCP client renders to the user. Real
+    dispatch() runs here; only the low-level upstream call is mocked."""
+    customer = _seed("key-mcp-shodan-attr", credits=10)
+
+    with patch("cloud.tools.run_shodan_osint", new=AsyncMock(return_value="[Shodan] Host: 1.2.3.4")):
+        with patch.dict(os.environ, {"SHODAN_API_KEY": "srv_shodan_key"}):
+            async with _as_customer(customer):
+                result = await _run_mcp_tool("search_shodan", "1.2.3.4")
+
+    assert result == "[Shodan] Host: 1.2.3.4\nData provided by Shodan (shodan.io)."
