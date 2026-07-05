@@ -63,13 +63,18 @@ COMPLETED_CHECKOUT_STATUS = "succeeded"
 # ── webhook signature verification ───────────────────────────────────────────
 
 def _decode_secret(secret: str) -> bytes:
-    """Accept whsec_<b64>, plain base64, or raw UTF-8 secrets."""
+    """
+    Decode a Polar/Standard Webhooks secret: strip the whsec_ prefix if
+    present, then base64-decode. Polar's secrets are always base64 under
+    the hood (per the Standard Webhooks reference implementation) — this
+    mirrors that exactly rather than guessing between base64 and raw
+    bytes, which can silently decode a valid secret into the wrong key.
+    """
     if secret.startswith("whsec_"):
-        return base64.b64decode(secret[6:])
-    try:
-        return base64.b64decode(secret)
-    except Exception:
-        return secret.encode()
+        secret = secret[len("whsec_"):]
+    # Padding fix: b64decode ignores extra padding, so this is safe even
+    # when the secret is already correctly padded.
+    return base64.b64decode(secret + "==")
 
 
 def verify_webhook_signature(
@@ -92,7 +97,7 @@ def verify_webhook_signature(
             logger.warning("Webhook timestamp outside ±5 min window: %s", msg_timestamp)
             return False
         key = _decode_secret(secret)
-        signed_content = f"{msg_id}.{msg_timestamp}.{body.decode()}".encode()
+        signed_content = f"{msg_id}.{msg_timestamp}.".encode() + body
         expected = base64.b64encode(
             hmac.new(key, signed_content, hashlib.sha256).digest()
         ).decode()

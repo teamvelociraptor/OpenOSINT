@@ -557,6 +557,102 @@ async def test_shodan_attribution_reaches_rest_response_body(client):
     assert body["results"] == ["[Shodan] Host: 1.2.3.4", "Data provided by Shodan (shodan.io)."]
 
 
+# ── (m) webhook signature verification accepts real Polar-style secrets ─────
+
+
+def _sign_polar_style(msg_id: str, msg_timestamp: str, body: bytes, key: bytes) -> str:
+    """Mirror production exactly: sign over raw body bytes, no text round-trip."""
+    import hashlib
+    import hmac
+    import base64
+
+    signed_content = f"{msg_id}.{msg_timestamp}.".encode() + body
+    sig = base64.b64encode(hmac.new(key, signed_content, hashlib.sha256).digest()).decode()
+    return f"v1,{sig}"
+
+
+def test_verify_webhook_signature_accepts_padded_whsec_secret():
+    import base64
+    import time
+
+    from cloud.polar import verify_webhook_signature
+
+    key = b"a-32-byte-ish-signing-secret!!!"
+    secret = f"whsec_{base64.b64encode(key).decode()}"  # correctly padded
+    msg_id = "msg_test123"
+    msg_timestamp = str(int(time.time()))
+    body = b'{"type":"checkout.updated","data":{"customer_id":"cust_1"}}'
+
+    signature = _sign_polar_style(msg_id, msg_timestamp, body, key)
+
+    assert verify_webhook_signature(body, msg_id, msg_timestamp, signature, secret) is True
+
+
+def test_verify_webhook_signature_accepts_unpadded_whsec_secret():
+    """The failure mode this fix targets: Polar-style secrets are commonly
+    issued without base64 padding. The old _decode_secret crashed on this
+    (caught upstream, but always rejected the real signature)."""
+    import base64
+    import time
+
+    from cloud.polar import verify_webhook_signature
+
+    key = b"a-32-byte-ish-signing-secret!!!"
+    secret = f"whsec_{base64.b64encode(key).decode().rstrip('=')}"  # unpadded
+    msg_id = "msg_test456"
+    msg_timestamp = str(int(time.time()))
+    body = b'{"type":"checkout.updated","data":{"customer_id":"cust_2"}}'
+
+    signature = _sign_polar_style(msg_id, msg_timestamp, body, key)
+
+    assert verify_webhook_signature(body, msg_id, msg_timestamp, signature, secret) is True
+
+
+def test_verify_webhook_signature_rejects_wrong_secret():
+    import base64
+    import time
+
+    from cloud.polar import verify_webhook_signature
+
+    key = b"a-32-byte-ish-signing-secret!!!"
+    wrong_key = b"a-completely-different-secret!!"
+    secret = f"whsec_{base64.b64encode(wrong_key).decode()}"
+    msg_id = "msg_test789"
+    msg_timestamp = str(int(time.time()))
+    body = b'{"type":"checkout.updated","data":{"customer_id":"cust_3"}}'
+
+    signature = _sign_polar_style(msg_id, msg_timestamp, body, key)
+
+    assert verify_webhook_signature(body, msg_id, msg_timestamp, signature, secret) is False
+
+
+def test_verify_webhook_signature_signs_raw_bytes_not_reserialized_json():
+    """Locks in: we HMAC the exact raw body bytes, never a reparsed/re-dumped
+    form. A signature computed over the raw bytes must reject a differently
+    -whitespaced re-serialization of the same logical JSON payload."""
+    import base64
+    import json
+    import time
+
+    from cloud.polar import verify_webhook_signature
+
+    key = b"a-32-byte-ish-signing-secret!!!"
+    secret = f"whsec_{base64.b64encode(key).decode()}"
+    msg_id = "msg_test_raw"
+    msg_timestamp = str(int(time.time()))
+
+    raw_body = b'{"type":"checkout.updated","data":{"customer_id":"cust_4"}}'
+    reserialized_body = json.dumps(json.loads(raw_body), indent=2).encode()
+    assert raw_body != reserialized_body  # sanity: the two forms really differ
+
+    signature = _sign_polar_style(msg_id, msg_timestamp, raw_body, key)
+
+    # Signature computed over raw_body verifies raw_body...
+    assert verify_webhook_signature(raw_body, msg_id, msg_timestamp, signature, secret) is True
+    # ...but must NOT verify a re-serialized form of the same logical payload.
+    assert verify_webhook_signature(reserialized_body, msg_id, msg_timestamp, signature, secret) is False
+
+
 # ── (n) checkout.updated <-> benefit_grant order-independent rendezvous ─────
 
 
