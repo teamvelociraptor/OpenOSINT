@@ -19,6 +19,7 @@ get_or_create_user(provider, provider_user_id, email) → User
 get_user(user_id)            → User | None
 link_checkout_to_user(user_id, polar_customer_id)
 link_customer_api_key_by_polar_id(polar_customer_id, api_key)
+link_existing_customer_key(user_id, api_key) → "ok" | "not_found" | "conflict"
 """
 from __future__ import annotations
 
@@ -448,3 +449,43 @@ async def link_customer_api_key_by_polar_id(polar_customer_id: str, api_key: str
                 "customer_api_key conflict linking user_id=%s to polar_customer_id=%s "
                 "(%s) — skipped", row["id"], polar_customer_id, exc,
             )
+
+
+async def link_existing_customer_key(user_id: int, api_key: str) -> str:
+    """
+    Manual-claim path: a user pastes a customer_api_key they already have
+    (e.g. from before OAuth login existed) onto their dashboard account.
+
+    Returns "ok", "not_found" (no customers row for this api_key), or
+    "conflict" (api_key already linked to a different user's row) — the
+    caller maps this to a clean HTTP response, never a 500.
+    """
+    if _is_memory_mode():
+        customer = _MEMORY_CUSTOMERS.get(api_key)
+        if customer is None:
+            return "not_found"
+        if _customer_api_key_claimed(api_key, user_id):
+            return "conflict"
+        user = _MEMORY_USERS.get(user_id)
+        if user is None:
+            return "not_found"
+        _MEMORY_USERS[user_id] = dataclasses.replace(
+            user, customer_api_key=api_key, polar_customer_id=customer.polar_customer_id
+        )
+        return "ok"
+
+    customer_row = await _pool.fetchrow(
+        "SELECT polar_customer_id FROM customers WHERE api_key = $1", api_key
+    )
+    if customer_row is None:
+        return "not_found"
+    try:
+        await _pool.execute(
+            "UPDATE users SET customer_api_key = $2, polar_customer_id = $3 WHERE id = $1",
+            user_id,
+            api_key,
+            customer_row["polar_customer_id"],
+        )
+    except asyncpg.UniqueViolationError:
+        return "conflict"
+    return "ok"

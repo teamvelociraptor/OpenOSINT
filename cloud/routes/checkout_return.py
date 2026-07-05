@@ -13,6 +13,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse
 
+from cloud.routes.dashboard import LINK_KEY_SECTION_HTML
 from cloud.session_auth import get_current_user
 
 router = APIRouter()
@@ -24,7 +25,8 @@ _RETURN_HTML = """<!doctype html>
 <h1>Finishing up your purchase…</h1>
 <p id="status">Checking…</p>
 <div id="fallback" style="display:none">
-  <p>Still not linked? <a href="/dashboard">Go to your dashboard</a> and try again in a minute.</p>
+  <p>Still not linked? <a href="/dashboard">Go to your dashboard</a> and try again in a minute, or link your key manually below.</p>
+""" + LINK_KEY_SECTION_HTML + """
 </div>
 <script>
 const POLL_INTERVAL_MS = 2000;

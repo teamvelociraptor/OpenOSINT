@@ -772,6 +772,54 @@ async def test_checkout_return_renders_for_logged_in_user(client, monkeypatch):
     assert "text/html" in resp.headers["content-type"]
 
 
+async def _login(client, monkeypatch, sub: str, email: str) -> None:
+    """Shared helper: log the test client in as a fresh OAuth user (session
+    cookie persists on the client for subsequent requests)."""
+    from cloud.routes import oauth as oauth_routes
+
+    class FakeOAuthClient:
+        async def authorize_access_token(self, request):
+            return {"userinfo": {"sub": sub, "email": email}}
+
+    monkeypatch.setattr(oauth_routes.oauth, "create_client", lambda provider: FakeOAuthClient())
+    await client.get("/auth/callback/google", follow_redirects=False)
+
+
+async def test_link_key_requires_login(client):
+    resp = await client.post("/v1/link-key", json={"customer_api_key": "whatever"})
+    assert resp.status_code == 401
+
+
+async def test_link_key_not_found_returns_404(client, monkeypatch):
+    await _login(client, monkeypatch, "google_link_404", "l404@example.com")
+    resp = await client.post("/v1/link-key", json={"customer_api_key": "no-such-key"})
+    assert resp.status_code == 404
+
+
+async def test_link_key_success(client, monkeypatch):
+    _seed("key-link-ok", credits=5)
+    await _login(client, monkeypatch, "google_link_ok", "lok@example.com")
+
+    resp = await client.post("/v1/link-key", json={"customer_api_key": "key-link-ok"})
+    assert resp.status_code == 200
+
+    me = await client.get("/v1/me")
+    assert me.json()["linked"] is True
+
+
+async def test_link_key_conflict_returns_409(client, monkeypatch):
+    _seed("key-link-conflict", credits=5)
+
+    await _login(client, monkeypatch, "google_link_c1", "c1@example.com")
+    first = await client.post("/v1/link-key", json={"customer_api_key": "key-link-conflict"})
+    assert first.status_code == 200
+
+    await client.get("/auth/logout")
+    await _login(client, monkeypatch, "google_link_c2", "c2@example.com")
+    second = await client.post("/v1/link-key", json={"customer_api_key": "key-link-conflict"})
+    assert second.status_code == 409
+
+
 async def test_first_time_link_via_checkout_still_works_after_coalesce_flip():
     """Base case for link_checkout_to_user's COALESCE flip: a user who has
     never been linked before (customer_api_key is None) must still pick up
