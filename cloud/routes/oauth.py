@@ -63,7 +63,7 @@ async def auth_callback(provider: str, request: Request) -> RedirectResponse:
 
     user = await db.get_or_create_user(provider, provider_user_id, email)
     request.session["user_id"] = user.id
-    return RedirectResponse(url="/v1/me")
+    return RedirectResponse(url="/dashboard")
 
 
 @router.get("/auth/logout")

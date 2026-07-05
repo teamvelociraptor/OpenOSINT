@@ -729,6 +729,29 @@ async def test_cross_user_key_claim_rejected_on_benefit_grant_side():
     assert (await db.get_user(user2.id)).customer_api_key == "KEY_TWO"  # untouched, not overwritten
 
 
+async def test_dashboard_requires_login(client):
+    resp = await client.get("/dashboard")
+    assert resp.status_code == 401
+
+
+async def test_oauth_callback_redirects_to_dashboard_and_dashboard_loads(client, monkeypatch):
+    from cloud.routes import oauth as oauth_routes
+
+    class FakeOAuthClient:
+        async def authorize_access_token(self, request):
+            return {"userinfo": {"sub": "google_dash", "email": "dash@example.com"}}
+
+    monkeypatch.setattr(oauth_routes.oauth, "create_client", lambda provider: FakeOAuthClient())
+
+    login_resp = await client.get("/auth/callback/google", follow_redirects=False)
+    assert login_resp.status_code in (302, 307)
+    assert login_resp.headers["location"] == "/dashboard"
+
+    dash_resp = await client.get("/dashboard")
+    assert dash_resp.status_code == 200
+    assert "text/html" in dash_resp.headers["content-type"]
+
+
 async def test_first_time_link_via_checkout_still_works_after_coalesce_flip():
     """Base case for link_checkout_to_user's COALESCE flip: a user who has
     never been linked before (customer_api_key is None) must still pick up
