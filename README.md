@@ -124,6 +124,14 @@ openosint > investigate target@example.com
 </tr>
 </table>
 
+**Reliable Residential Proxies for Data Collection & Automation**
+
+**Access 90M+ real residential IPs across 200+ countries with smart rotation, geo-targeting, high-concurrency support, and non-expiring traffic.**
+
+**Use Cases:** Web Scraping · Data Collection · AI Automation · Developer Tools
+
+🎁 10% discount with code **RAPID10** → [Start Free Testing](https://www.rapidproxy.io/?ref=openosint)
+
 ## Custom Integrations
 
 Need OpenOSINT wired into your SOC, fraud, threat-intel, or AI-agent stack?
@@ -661,14 +669,6 @@ Enhanced IP geolocation, ISP, VPN/Proxy/Tor, and datacenter detection. Powers `s
 </a>
 
 **[RapidProxy](https://www.rapidproxy.io/?ref=openosint)** — Featured Integration · Residential Proxies
-
-**Reliable Residential Proxies for Data Collection & Automation**
-
-**Access 90M+ real residential IPs across 200+ countries with smart rotation, geo-targeting, high-concurrency support, and non-expiring traffic.**
-
-**Use Cases:** Web Scraping · Data Collection · AI Automation · Developer Tools
-
-🎁 10% discount with code **RAPID10** → [Start Free Testing](https://www.rapidproxy.io/?ref=openosint)
 
 <!-- SPONSORS:END -->
 
