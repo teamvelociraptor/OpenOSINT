@@ -20,7 +20,9 @@ from cloud.routes import checkout, checkout_return, dashboard, enrich, oauth as 
 from cloud.routes import keys as keys_route
 from cloud.routes.mcp_gateway import create_mcp_asgi_app
 
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(name)s: %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="[%(levelname)s] %(name)s: %(message)s", force=True
+)  # force: FastMCP's __init__ (imported above) installs a width-cropping RichHandler first
 
 
 @asynccontextmanager

@@ -62,19 +62,26 @@ COMPLETED_CHECKOUT_STATUS = "succeeded"
 
 # ── webhook signature verification ───────────────────────────────────────────
 
-def _decode_secret(secret: str) -> bytes:
+def _candidate_keys(secret: str) -> list[bytes]:
     """
-    Decode a Polar/Standard Webhooks secret: strip the whsec_ prefix if
-    present, then base64-decode. Polar's secrets are always base64 under
-    the hood (per the Standard Webhooks reference implementation) — this
-    mirrors that exactly rather than guessing between base64 and raw
-    bytes, which can silently decode a valid secret into the wrong key.
+    Return every plausible HMAC key encoding for a Polar webhook secret.
+    Polar issues whsec_-prefixed secrets in two shapes seen in the wild:
+    base64 (the Standard Webhooks reference default) and raw/plaintext
+    (confirmed against a real Polar secret that base64-decoded to the
+    wrong 32-byte key while the real signature only matched the 44 raw
+    chars). Try both and accept either — this can't accept a *wrong*
+    secret, it only changes which encoding of the *correct* one verifies.
     """
     if secret.startswith("whsec_"):
         secret = secret[len("whsec_"):]
-    # Padding fix: b64decode ignores extra padding, so this is safe even
-    # when the secret is already correctly padded.
-    return base64.b64decode(secret + "==")
+    keys = [secret.encode()]
+    try:
+        # Padding fix: b64decode ignores extra padding, so this is safe even
+        # when the secret is already correctly padded.
+        keys.append(base64.b64decode(secret + "=="))
+    except Exception:
+        pass
+    return keys
 
 
 def verify_webhook_signature(
@@ -96,17 +103,27 @@ def verify_webhook_signature(
         if abs(time.time() - ts) > _TIMESTAMP_TOLERANCE_SECS:
             logger.warning("Webhook timestamp outside ±5 min window: %s", msg_timestamp)
             return False
-        key = _decode_secret(secret)
         signed_content = f"{msg_id}.{msg_timestamp}.".encode() + body
-        expected = base64.b64encode(
-            hmac.new(key, signed_content, hashlib.sha256).digest()
-        ).decode()
-        # Signature header may carry multiple space-separated tokens
-        for token in msg_signature.split():
-            if "," in token:
-                _, sig_val = token.split(",", 1)
+        sig_values = [
+            token.split(",", 1)[1]
+            for token in msg_signature.split()
+            if "," in token
+        ]
+        for key in _candidate_keys(secret):
+            expected = base64.b64encode(
+                hmac.new(key, signed_content, hashlib.sha256).digest()
+            ).decode()
+            for sig_val in sig_values:
                 if hmac.compare_digest(expected, sig_val):
                     return True
+        if os.environ.get("POLAR_WEBHOOK_DEBUG"):
+            # ponytail: temporary diagnostic, remove once mismatch is root-caused.
+            # Logs only length/prefixes — never the secret or full signatures.
+            logger.warning(
+                "sig debug: key_lens=%s recv_prefixes=%s",
+                [len(k) for k in _candidate_keys(secret)],
+                [s[:8] for s in sig_values],
+            )
         logger.warning("Webhook signature mismatch")
         return False
     except Exception as exc:

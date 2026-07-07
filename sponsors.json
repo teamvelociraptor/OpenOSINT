@@ -8,5 +8,13 @@
     "tool": "search_ip2location",
     "category": "IP Geolocation & Threat Intelligence",
     "contact": "sales@ip2location.com"
+  },
+  {
+    "name": "RapidProxy",
+    "tagline": "90M+ rotating residential IPs across 200+ countries — smart rotation & geo-targeting.",
+    "url": "https://www.rapidproxy.io/?ref=openosint",
+    "logo": "https://raw.githubusercontent.com/OpenOSINT/OpenOSINT/main/docs/assets/rapidproxy-logo.png",
+    "tier": "featured",
+    "category": "Residential Proxies"
   }
 ]
