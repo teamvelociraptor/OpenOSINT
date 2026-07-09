@@ -313,6 +313,34 @@ async def list_tools() -> list[Tool]:
             ),
         ),
         Tool(
+            name="dossier",
+            description=(
+                "Compound OSINT operation (DOCTRINE.md §4.5): run the full relevant "
+                "tool chain against one target and return a structured, ontology-ready "
+                "payload — a markdown report plus entity and link drafts (Persona, "
+                "Organization, Installation, IntelProduct, etc.) that Legios ingests "
+                "directly into its Unified Intelligence Model. target_type selects the "
+                "tool chain: domain, email, username, phone, ip, organization, person."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "target": {"type": "string", "description": "One OSINT target (email, username, domain, IP, phone, or org/person name)."},
+                    "target_type": {
+                        "type": "string",
+                        "enum": ["domain", "email", "username", "phone", "ip", "organization", "person"],
+                        "description": "Which tool chain to run. Inferred from the target if omitted.",
+                    },
+                    "recursive": {
+                        "type": "boolean",
+                        "description": "If true, automatically pivot on discovered entities up to 2 BFS hops (requires more API calls).",
+                    },
+                    "json_output": {"type": "boolean", "description": "Return result as structured JSON (always JSON for dossier)."},
+                },
+                "required": ["target"],
+            },
+        ),
+        Tool(
             name="investigate_multi",
             description=(
                 "Investigate multiple targets in parallel using the full OSINT tool chain. "
@@ -418,6 +446,10 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> CallToolResult:
     logger.info("Tool: %s | args: %s", name, arguments)
     should_use_json = bool(arguments.get("json_output", False))
 
+    # Special handler for compound dossier (structured payload)
+    if name == "dossier":
+        return await _call_dossier(arguments)
+
     # Special handler for multi-target investigation
     if name == "investigate_multi":
         return await _call_investigate_multi(arguments)
@@ -438,6 +470,29 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> CallToolResult:
         return CallToolResult(content=[TextContent(type="text", text=str(exc))], isError=True)
     except Exception as exc:
         logger.exception("Unhandled error in tool '%s'.", name)
+        return CallToolResult(
+            content=[TextContent(type="text", text=f"Internal error: {exc}")],
+            isError=True,
+        )
+
+
+async def _call_dossier(arguments: dict[str, Any]) -> CallToolResult:
+    from openosint.dossier import run_dossier
+
+    target = arguments.get("target", "")
+    if not target:
+        return CallToolResult(
+            content=[TextContent(type="text", text="'target' must be a non-empty string.")],
+            isError=True,
+        )
+    try:
+        payload = await run_dossier(target, arguments.get("target_type"))
+        return CallToolResult(
+            content=[TextContent(type="text", text=json.dumps(payload, indent=2))],
+            isError=False,
+        )
+    except Exception as exc:
+        logger.exception("Error in dossier.")
         return CallToolResult(
             content=[TextContent(type="text", text=f"Internal error: {exc}")],
             isError=True,
@@ -480,6 +535,24 @@ async def _serve() -> None:
 
 
 def main() -> None:
+    import sys
+
+    # `openosint-mcp` with no args  -> stdio (default, unchanged).
+    # `openosint-mcp http [--host H] [--port P]` -> streamable HTTP server
+    # (DOCTRINE.md §5.2 surface that Legios's MCPToolClient connects to).
+    if len(sys.argv) > 1 and sys.argv[1] == "http":
+        from openosint.mcp_http import serve_http
+
+        host, port = "0.0.0.0", 8765
+        args = sys.argv[2:]
+        for i, a in enumerate(args):
+            if a == "--host" and i + 1 < len(args):
+                host = args[i + 1]
+            elif a == "--port" and i + 1 < len(args):
+                port = int(args[i + 1])
+        serve_http(host, port)
+        return
+    asyncio.run(_serve())
     asyncio.run(_serve())
 
 

@@ -60,6 +60,7 @@ Documentation = "https://openosint.github.io/OpenOSINT"
 [project.scripts]
 openosint = "openosint.cli:main"
 openosint-mcp = "openosint.mcp_server:main"
+openosint-mcp-http = "openosint.mcp_http:serve_http"
 
 [project.optional-dependencies]
 dev = [
