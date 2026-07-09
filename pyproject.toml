@@ -79,6 +79,12 @@ ollama = [
 openai = [
     "openai>=1.40.0",
 ]
+# Streamable-HTTP MCP server transport + dossier LLM synthesis (DOCTRINE.md §5.2,
+# §4.5). Install with:  pip install "openosint[mcp-http]"
+mcp-http = [
+    "uvicorn>=0.30.0",
+    "openai>=1.40.0",
+]
 pdf = [
     "reportlab>=4.0.0",
 ]
