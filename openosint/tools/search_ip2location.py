@@ -19,6 +19,7 @@ import re
 
 import requests
 
+from openosint.proxy import get_requests_proxies
 from openosint.tools.exceptions import OSINTError, ToolExecutionError
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,7 @@ def _fetch_ip2location_data(ip: str, api_key: str, timeout: int) -> dict:
             _API_URL,
             params={"key": api_key, "ip": ip, "format": "json"},
             timeout=timeout,
+            proxies=get_requests_proxies(),
         )
     except requests.RequestException as exc:
         raise OSINTError(f"Network error querying IP2Location: {exc}") from exc

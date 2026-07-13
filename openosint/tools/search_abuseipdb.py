@@ -16,6 +16,8 @@ import re
 
 import aiohttp
 
+from openosint.proxy import get_aiohttp_connector, get_aiohttp_proxy
+
 logger = logging.getLogger(__name__)
 
 _API_URL = "https://api.abuseipdb.com/api/v2/check"
@@ -56,8 +58,12 @@ async def _fetch_abuseipdb_data(ip: str, api_key: str, timeout: int) -> dict:
     headers = {"Key": api_key, "Accept": "application/json"}
     params = {"ipAddress": ip, "maxAgeInDays": str(_MAX_AGE_IN_DAYS)}
     timeout_cfg = aiohttp.ClientTimeout(total=timeout)
-    async with aiohttp.ClientSession(timeout=timeout_cfg) as session:
-        async with session.get(_API_URL, headers=headers, params=params) as resp:
+    async with aiohttp.ClientSession(
+        timeout=timeout_cfg, connector=get_aiohttp_connector()
+    ) as session:
+        async with session.get(
+            _API_URL, headers=headers, params=params, proxy=get_aiohttp_proxy()
+        ) as resp:
             _raise_for_status(resp.status)
             return await resp.json()
 

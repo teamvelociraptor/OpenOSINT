@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 
+from openosint.proxy import get_sherlock_proxy_args
 from openosint.tools.exceptions import OSINTError
 from openosint.utils import run_subprocess
 
@@ -25,7 +26,7 @@ async def _run_sherlock(username: str, timeout_seconds: int) -> str:
     """Execute sherlock against username and return raw stdout."""
     result = await run_subprocess(
         binary=_BINARY,
-        args=[username, "--print-found", "--timeout", _PER_SITE_TIMEOUT],
+        args=[username, "--print-found", "--timeout", _PER_SITE_TIMEOUT, *get_sherlock_proxy_args()],
         timeout_seconds=timeout_seconds,
         install_hint=_INSTALL_HINT,
     )

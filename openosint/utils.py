@@ -35,6 +35,7 @@ async def run_subprocess(
     args: list[str],
     timeout_seconds: int,
     install_hint: str = "",
+    env: dict[str, str] | None = None,
 ) -> SubprocessResult:
     """
     Execute an external binary asynchronously and return its output.
@@ -49,6 +50,9 @@ async def run_subprocess(
         Hard wall-clock limit; process is killed on expiry.
     install_hint:
         Short installation message appended to ToolNotFoundError.
+    env:
+        Environment for the child process. None (default) inherits the
+        current process environment unchanged.
 
     Raises
     ------
@@ -74,6 +78,7 @@ async def run_subprocess(
             *args,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            env=env,
         )
         raw_stdout, raw_stderr = await asyncio.wait_for(
             process.communicate(),

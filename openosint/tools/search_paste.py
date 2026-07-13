@@ -13,6 +13,7 @@ import logging
 
 import requests
 
+from openosint.proxy import get_requests_proxies
 from openosint.tools.exceptions import OSINTError, ToolExecutionError
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,7 @@ def _fetch_paste_data(query: str, timeout_seconds: int) -> list[dict]:
         response = requests.get(
             _PSBDMP_URL.format(query=query),
             timeout=timeout_seconds,
+            proxies=get_requests_proxies(),
         )
     except requests.RequestException as exc:
         raise OSINTError(f"Network error querying psbdmp.ws: {exc}") from exc

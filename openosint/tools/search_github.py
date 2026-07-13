@@ -17,6 +17,8 @@ import os
 
 import aiohttp
 
+from openosint.proxy import get_aiohttp_connector, get_aiohttp_proxy
+
 logger = logging.getLogger(__name__)
 
 _API_BASE = "https://api.github.com"
@@ -41,7 +43,7 @@ async def _get(
     url: str,
     params: dict | None = None,
 ) -> dict | list | None:
-    async with session.get(url, params=params) as resp:
+    async with session.get(url, params=params, proxy=get_aiohttp_proxy()) as resp:
         if resp.status == 404:
             return None
         resp.raise_for_status()
@@ -138,6 +140,7 @@ async def run_github_osint(query: str, timeout_seconds: int = _DEFAULT_TIMEOUT, 
         async with aiohttp.ClientSession(
             headers=_build_headers(token),
             timeout=timeout_cfg,
+            connector=get_aiohttp_connector(),
         ) as session:
             user = await _fetch_user(session, query)
             if user:

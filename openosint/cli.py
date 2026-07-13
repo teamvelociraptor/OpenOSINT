@@ -32,20 +32,28 @@ import os  # noqa: E402
 import sys  # noqa: E402
 
 from openosint.json_output import format_tool_result  # noqa: E402
+from openosint.proxy import (  # noqa: E402
+    ProxyConfigError,
+    get_proxy_url,
+    redact_proxy_url,
+    set_cli_proxy_url,
+)
 from openosint.tools.scrape_url import run_scrape_url_osint  # noqa: E402
-from openosint.tools.search_footprint import run_footprint_osint  # noqa: E402
 from openosint.tools.search_abuseipdb import run_abuseipdb_osint  # noqa: E402
 from openosint.tools.search_breach import run_breach_osint  # noqa: E402
 from openosint.tools.search_censys import run_censys_osint  # noqa: E402
 from openosint.tools.search_dns import run_dns_osint  # noqa: E402
 from openosint.tools.search_dorks_live import run_dorks_live_osint  # noqa: E402
 from openosint.tools.search_email import run_email_osint  # noqa: E402
+from openosint.tools.search_footprint import run_footprint_osint  # noqa: E402
 from openosint.tools.search_github import run_github_osint  # noqa: E402
 from openosint.tools.search_ip2location import run_ip2location_osint  # noqa: E402
 from openosint.tools.search_paste import run_paste_osint  # noqa: E402
 from openosint.tools.search_shodan import run_shodan_osint  # noqa: E402
 from openosint.tools.search_username import run_username_osint  # noqa: E402
 from openosint.tools.search_virustotal import run_virustotal_osint  # noqa: E402
+
+logger = logging.getLogger(__name__)
 
 _DIVIDER = "=" * 60
 
@@ -108,6 +116,8 @@ def _build_parser() -> argparse.ArgumentParser:
             "  openosint --json email target@example.com\n"
             "  openosint --provider ollama                 # use local Ollama\n"
             "  openosint --provider ollama --ollama-model mistral\n"
+            "  openosint --proxy socks5://user:pass@host:1080 email target@example.com\n"
+            "  openosint proxy-test                        # verify the configured proxy\n"
             "\n"
             "Learn the method: AI OSINT Operator's Playbook (paid guide, $39)\n"
             "  https://tommasodev.gumroad.com/l/ai-osint-playbook?utm_source=cli&utm_medium=help&utm_campaign=operator_playbook\n"
@@ -199,6 +209,17 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         dest="is_pdf_disabled",
         help="Disable automatic PDF generation alongside Markdown reports.",
+    )
+    parser.add_argument(
+        "--proxy",
+        type=str,
+        default=None,
+        metavar="URL",
+        help=(
+            "Upstream proxy for web-facing tools (http://, https://, or socks5://). "
+            "Overrides OPENOSINT_PROXY_URL. Excludes DNS lookups, generate_dorks, "
+            "the Anthropic client, and the Bright Data tools (scrape/footprint/search-dorks-live)."
+        ),
     )
 
     subparsers = parser.add_subparsers(dest="command", metavar="command")
@@ -509,6 +530,12 @@ def _build_parser() -> argparse.ArgumentParser:
             "Required to bind to a non-loopback host (e.g. 0.0.0.0). "
             "Exposes /api/setup and every other route to the network."
         ),
+    )
+
+    # proxy-test
+    subparsers.add_parser(
+        "proxy-test",
+        help="Verify the configured upstream proxy by fetching your exit IP.",
     )
 
     # prompts
@@ -841,6 +868,42 @@ async def _handle_multi(
 
 
 # ---------------------------------------------------------------------------
+# Proxy-test command handler
+# ---------------------------------------------------------------------------
+
+_IP_ECHO_URL = "https://api.ipify.org"
+
+
+def _handle_proxy_test() -> None:
+    import requests
+
+    from openosint.proxy import get_requests_proxies
+
+    proxy_url = get_proxy_url()
+    if proxy_url:
+        print(f"[*] Testing proxy: {redact_proxy_url(proxy_url)}", file=sys.stderr)
+    else:
+        print(
+            "[*] No proxy configured (--proxy / OPENOSINT_PROXY_URL unset) — "
+            "testing direct connection.",
+            file=sys.stderr,
+        )
+    try:
+        response = requests.get(
+            _IP_ECHO_URL,
+            params={"format": "json"},
+            timeout=15,
+            proxies=get_requests_proxies(),
+        )
+        response.raise_for_status()
+        exit_ip = response.json().get("ip", "unknown")
+        print(f"[+] Exit IP: {exit_ip}")
+    except requests.RequestException as exc:
+        print(f"[!] Proxy test failed: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
+# ---------------------------------------------------------------------------
 # Sponsors command handler
 # ---------------------------------------------------------------------------
 
@@ -961,6 +1024,15 @@ async def _async_main() -> None:
     args = parser.parse_args()
     _configure_logging(args.verbose)
 
+    set_cli_proxy_url(getattr(args, "proxy", None))
+    try:
+        proxy_url = get_proxy_url()
+    except ProxyConfigError as exc:
+        print(f"[!] Proxy configuration error: {exc}", file=sys.stderr)
+        sys.exit(1)
+    if proxy_url:
+        print(f"[*] Upstream proxy active: {redact_proxy_url(proxy_url)}", file=sys.stderr)
+
     # No subcommand or explicit 'shell' → launch REPL.
     # Await directly — run_repl() is a sync wrapper that calls asyncio.run()
     # internally, which raises RuntimeError when called from a running event loop.
@@ -1065,6 +1137,8 @@ async def _async_main() -> None:
         _handle_history(args)
     elif args.command == "sponsors":
         _handle_sponsors()
+    elif args.command == "proxy-test":
+        _handle_proxy_test()
     elif args.command == "prompts":
         print(
             "AI OSINT Prompt Pack — 30+ structured prompts for AI-assisted OSINT.\n"

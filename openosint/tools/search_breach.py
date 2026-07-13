@@ -15,6 +15,7 @@ import os
 
 import requests
 
+from openosint.proxy import get_requests_proxies
 from openosint.tools.exceptions import OSINTError, ToolExecutionError
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,7 @@ def _fetch_hibp_breaches(email: str, timeout_seconds: int, api_key: str) -> list
             headers=headers,
             params={"truncateResponse": "false"},
             timeout=timeout_seconds,
+            proxies=get_requests_proxies(),
         )
     except requests.RequestException as exc:
         raise OSINTError(f"Network error querying HIBP: {exc}") from exc
