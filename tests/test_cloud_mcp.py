@@ -37,8 +37,6 @@ from cloud.tools import ALLOW_LIST as _REST_ALLOW_LIST
 @pytest.fixture(autouse=True)
 def reset_memory_store():
     db._MEMORY_CUSTOMERS.clear()
-    db._MEMORY_BY_POLAR_ID.clear()
-    db._MEMORY_EVENTS.clear()
     keys._MEMORY_KEYS.clear()
     keys._fernet = None
     yield
@@ -47,7 +45,6 @@ def reset_memory_store():
 def _seed(api_key: str, credits: int = 10, plan: str = "starter") -> db.Customer:
     customer = db.Customer(
         api_key=api_key,
-        polar_customer_id="polar_test",
         credits=credits,
         plan=plan,
     )

@@ -7,9 +7,9 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from cloud import db, polar, rate_limit, tools
+from cloud import db, rate_limit, tools
 from cloud.auth import get_customer
-from cloud.config import CHECKOUT_URLS, TOOL_TIMEOUT_SECONDS
+from cloud.config import TOOL_TIMEOUT_SECONDS
 from cloud.key_sources import (
     MissingCredentialError,
     get_credit_cost,
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 _ERROR_PREFIXES = ("Scan error", "Internal error", "Error:")
+_CONTACT_MESSAGE = "No credits remaining. Contact commercial@openosint.tech for access."
 
 
 class EnrichRequest(BaseModel):
@@ -105,12 +106,6 @@ async def enrich(
         # Race: a concurrent request drained the last credit between pre-check and now
         _raise_402(customer.plan)
 
-    # Fire-and-forget Polar usage telemetry — errors are swallowed in polar.py
-    if customer.polar_customer_id:
-        asyncio.create_task(
-            polar.send_usage_event(customer.polar_customer_id, body.tool)
-        )
-
     return EnrichResponse(
         tool=result["tool"],
         target=result["target"],
@@ -122,8 +117,4 @@ async def enrich(
 
 
 def _raise_402(plan: str) -> None:
-    checkout_url = CHECKOUT_URLS.get(plan) or CHECKOUT_URLS.get("payg", "")
-    raise HTTPException(
-        status_code=402,
-        detail={"message": "No credits remaining.", "checkout_url": checkout_url},
-    )
+    raise HTTPException(status_code=402, detail={"message": _CONTACT_MESSAGE})

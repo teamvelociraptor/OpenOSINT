@@ -20,7 +20,7 @@ from mcp.server.fastmcp import FastMCP
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from cloud import db, rate_limit, tools
-from cloud.config import CHECKOUT_URLS, TOOL_TIMEOUT_SECONDS
+from cloud.config import TOOL_TIMEOUT_SECONDS
 from cloud.key_sources import get_credit_cost, is_platform_pool_tool, resolve_key
 
 logger = logging.getLogger(__name__)
@@ -40,9 +40,7 @@ _mcp = FastMCP(
 
 
 def _credits_error(plan: str) -> str:
-    checkout_url = CHECKOUT_URLS.get(plan) or CHECKOUT_URLS.get("payg", "")
-    suffix = f" Top up at: {checkout_url}" if checkout_url else ""
-    return f"No credits remaining.{suffix}"
+    return "No credits remaining. Contact commercial@openosint.tech for access."
 
 
 async def _run_mcp_tool(tool_name: str, target: str) -> str:

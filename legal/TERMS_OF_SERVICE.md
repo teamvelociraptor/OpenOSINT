@@ -21,11 +21,11 @@ You are responsible for keeping your API key confidential and for all activity u
 
 ## 4. Payment, credits, and billing
 
-Payments are processed by **Polar**, acting as Merchant of Record; Polar's buyer terms also apply. Plans are sold as prepaid credits (pay-as-you-go) or recurring subscriptions that grant a monthly credit allowance. Credits are consumed per successful lookup. Subscriptions renew automatically until cancelled; cancellation takes effect at the end of the current period.
+OpenOSINT Cloud access is invite-only and provisioned manually — contact commercial@openosint.tech. Credits are prepaid and granted at the operator's discretion; there is no automated recurring billing or subscription. The AI OSINT Prompt Pack, Operator's Playbook, and Setup Sprint are one-time digital purchases processed by **Gumroad**, acting as Merchant of Record; Gumroad's buyer terms also apply.
 
 ## 5. Refunds
 
-Except where required by law, fees are non-refundable. Any refund requests are handled in accordance with Polar's policies. Credits have no cash value and are non-transferable.
+Except where required by law, fees are non-refundable. Refund requests for digital product purchases are handled in accordance with Gumroad's policies. OpenOSINT Cloud credits have no cash value, are non-transferable, and are non-refundable once granted.
 
 ## 6. Third-party providers
 
@@ -45,7 +45,7 @@ You agree to indemnify us against claims arising from your use of the Service, y
 
 ## 10. Termination
 
-We may suspend or terminate access for breach. You may stop using the Service at any time; cancel subscriptions via the customer portal.
+We may suspend or terminate access for breach. You may stop using the Service at any time; to end OpenOSINT Cloud access, email commercial@openosint.tech.
 
 ## 11. Changes
 

@@ -57,7 +57,7 @@
 <h2 id="data">1. DATA WE PROCESS</h2>
 <div class="indent">
 <ul>
-<li><b>Account &amp; billing data:</b> your email and billing details, handled by our payment provider Polar (acting as Merchant of Record). We receive limited customer and order data from Polar; we do not store full card details.</li>
+<li><b>Account data:</b> for OpenOSINT Cloud, your email address via GitHub/Google OAuth login. Cloud access is invite-only and provisioned manually &mdash; we do not collect or process payment card data for it ourselves. If you purchase the AI OSINT Prompt Pack, Operator&rsquo;s Playbook, or Setup Sprint, payment is processed by <b>Gumroad</b> (acting as Merchant of Record for those digital products); we receive limited order data (email, product purchased) from Gumroad and never see full card details.</li>
 <li><b>Credentials you store (BYOK):</b> API keys you add for third-party providers. These are <b>encrypted at rest</b> and used only to perform the lookups you request.</li>
 <li><b>Usage data:</b> API requests, timestamps, credit balances, and limited technical logs (e.g. request metadata) for operating, securing, and metering the Service.</li>
 <li><b>Query inputs/outputs:</b> the targets you submit and the results returned. We aim to minimize retention of query content; see &sect;4.</li>
@@ -92,7 +92,7 @@
 
 <h2 id="subprocessors">6. SUB-PROCESSORS</h2>
 <div class="indent">
-<p>We use: <b>Polar</b> (payments / Merchant of Record), <b>Heroku</b> (hosting/infrastructure, USA), <b>IP2Location</b> and other OSINT data providers for lookups. A current list is available at <a href="/subprocessors/">openosint.tech/subprocessors</a>. Where data is transferred outside the EEA (e.g. US providers), we rely on appropriate safeguards such as Standard Contractual Clauses.</p>
+<p>We use: <b>Gumroad</b> (payments / Merchant of Record for digital products), <b>Heroku</b> (hosting/infrastructure, USA), <b>IP2Location</b> and other OSINT data providers for lookups. A current list is available at <a href="/subprocessors/">openosint.tech/subprocessors</a>. Where data is transferred outside the EEA (e.g. US providers), we rely on appropriate safeguards such as Standard Contractual Clauses.</p>
 </div>
 
 <h2 id="rights">7. YOUR RIGHTS</h2>

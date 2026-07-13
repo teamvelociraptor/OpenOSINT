@@ -9,7 +9,7 @@ This policy explains how we process personal data when you use OpenOSINT Cloud (
 
 ## 1. Data we process
 
-- **Account & billing data:** your email and billing details, handled by our payment provider Polar (acting as Merchant of Record). We receive limited customer and order data from Polar; we do not store full card details.
+- **Account data:** for OpenOSINT Cloud, your email address via GitHub/Google OAuth login. Cloud access is invite-only and provisioned manually — we do not collect or process payment card data for it ourselves. If you purchase the AI OSINT Prompt Pack, Operator's Playbook, or Setup Sprint, payment is processed by **Gumroad** (acting as Merchant of Record for those digital products); we receive limited order data (email, product purchased) from Gumroad and never see full card details.
 - **Credentials you store (BYOK):** API keys you add for third-party providers. These are **encrypted at rest** and used only to perform the lookups you request.
 - **Usage data:** API requests, timestamps, credit balances, and limited technical logs (e.g. request metadata) for operating, securing, and metering the Service.
 - **Query inputs/outputs:** the targets you submit and the results returned. We aim to minimize retention of query content; see §4.
@@ -30,7 +30,7 @@ We retain account and billing records as required for legal/tax purposes. Usage 
 
 ## 5. Sub-processors
 
-We use: **Polar** (payments / Merchant of Record), **Heroku** (hosting/infrastructure, USA), **IP2Location** and other OSINT data providers for lookups. A current list is available at https://openosint.tech/subprocessors. Where data is transferred outside the EEA (e.g. US providers), we rely on appropriate safeguards such as Standard Contractual Clauses.
+We use: **Gumroad** (payments / Merchant of Record for digital products), **Heroku** (hosting/infrastructure, USA), **IP2Location** and other OSINT data providers for lookups. A current list is available at https://openosint.tech/subprocessors. Where data is transferred outside the EEA (e.g. US providers), we rely on appropriate safeguards such as Standard Contractual Clauses.
 
 ## 6. Your rights
 
