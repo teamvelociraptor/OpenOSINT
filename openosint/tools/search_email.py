@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 
+from openosint.proxy import get_subprocess_env
 from openosint.tools.exceptions import OSINTError, ToolExecutionError
 from openosint.utils import run_subprocess
 
@@ -27,6 +28,7 @@ async def _run_holehe(email: str, timeout_seconds: int) -> str:
         args=[email, "--only-used"],
         timeout_seconds=timeout_seconds,
         install_hint=_INSTALL_HINT,
+        env=get_subprocess_env(),
     )
     if result.return_code != 0:
         raise ToolExecutionError(f"holehe exited with code {result.return_code}: {result.stderr}")

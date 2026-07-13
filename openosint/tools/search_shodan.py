@@ -15,6 +15,7 @@ import logging
 import os
 import re
 
+from openosint.proxy import get_requests_proxies
 from openosint.tools.exceptions import OSINTError
 
 logger = logging.getLogger(__name__)
@@ -107,7 +108,7 @@ async def run_shodan_osint(query: str, timeout_seconds: int = _DEFAULT_TIMEOUT, 
 
     logger.info("Starting Shodan lookup for: %s", query)
     try:
-        api = shodan.Shodan(resolved_key)
+        api = shodan.Shodan(resolved_key, proxies=get_requests_proxies())
         if _is_ip_address(query):
             data = await asyncio.wait_for(
                 asyncio.to_thread(api.host, query),

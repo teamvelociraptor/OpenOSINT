@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 
+from openosint.proxy import get_subprocess_env
 from openosint.tools.exceptions import OSINTError
 from openosint.utils import run_subprocess
 
@@ -27,6 +28,7 @@ async def _run_sublist3r(domain: str, timeout_seconds: int) -> str:
         args=["-d", domain, "-n"],
         timeout_seconds=timeout_seconds,
         install_hint=_INSTALL_HINT,
+        env=get_subprocess_env(),
     )
     return result.stdout
 

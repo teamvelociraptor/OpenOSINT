@@ -24,6 +24,7 @@ import re
 
 import requests
 
+from openosint.proxy import get_requests_proxies
 from openosint.tools.exceptions import OSINTError, ToolExecutionError
 
 logger = logging.getLogger(__name__)
@@ -179,6 +180,7 @@ def _lookup_ip(api_key: str, ip: str, timeout: int) -> str:
             f"{_BASE_URL}/ip_addresses/{ip}",
             headers=_headers(api_key),
             timeout=timeout,
+            proxies=get_requests_proxies(),
         )
     except requests.RequestException as exc:
         raise OSINTError(f"Network error querying VirusTotal: {exc}") from exc
@@ -192,6 +194,7 @@ def _lookup_domain(api_key: str, domain: str, timeout: int) -> str:
             f"{_BASE_URL}/domains/{domain}",
             headers=_headers(api_key),
             timeout=timeout,
+            proxies=get_requests_proxies(),
         )
     except requests.RequestException as exc:
         raise OSINTError(f"Network error querying VirusTotal: {exc}") from exc
@@ -208,6 +211,7 @@ async def _lookup_url(api_key: str, target_url: str, timeout: int) -> str:
             headers=_headers(api_key),
             data={"url": target_url},
             timeout=timeout,
+            proxies=get_requests_proxies(),
         )
     except requests.RequestException as exc:
         raise OSINTError(f"Network error submitting URL to VirusTotal: {exc}") from exc
@@ -227,6 +231,7 @@ async def _lookup_url(api_key: str, target_url: str, timeout: int) -> str:
                 f"{_BASE_URL}/analyses/{analysis_id}",
                 headers=_headers(api_key),
                 timeout=timeout,
+                proxies=get_requests_proxies(),
             )
         except requests.RequestException as exc:
             raise OSINTError(f"Network error polling VirusTotal analysis: {exc}") from exc
@@ -245,6 +250,7 @@ def _lookup_hash(api_key: str, file_hash: str, timeout: int) -> str:
             f"{_BASE_URL}/files/{file_hash}",
             headers=_headers(api_key),
             timeout=timeout,
+            proxies=get_requests_proxies(),
         )
     except requests.RequestException as exc:
         raise OSINTError(f"Network error querying VirusTotal: {exc}") from exc

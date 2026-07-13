@@ -84,6 +84,10 @@ pdf = [
 censys = [
     "censys>=2.2.0",
 ]
+socks = [
+    "PySocks>=1.7.1",
+    "aiohttp-socks>=0.8.4",
+]
 web = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.29.0",
@@ -101,6 +105,8 @@ all = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.29.0",
     "sse-starlette>=1.8.0",
+    "PySocks>=1.7.1",
+    "aiohttp-socks>=0.8.4",
 ]
 
 [tool.setuptools.packages.find]
