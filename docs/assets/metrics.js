@@ -1,10 +1,15 @@
-// Live GitHub stars/forks + PyPI monthly downloads for openosint.tech.
-// Populates any element with a data-metric="stars|forks|pypi-downloads"
-// attribute. On fetch failure (offline, rate-limited, CORS-blocked) the
-// static fallback text already in the element is left untouched.
+// Live GitHub stars/forks for openosint.tech.
+// Populates any element with a data-metric="stars|forks" attribute. On
+// fetch failure (offline, rate-limited) the static fallback text already
+// in the element is left untouched.
+//
+// ponytail: PyPI monthly downloads are NOT fetched here — pypistats.org
+// sends no Access-Control-Allow-Origin header (verified via curl) and
+// rate-limits aggressively, so a browser fetch() would be CORS-blocked.
+// Use the shields.io <img> badge for that metric instead (see docs/index.html,
+// docs/sponsors.html), which has no CORS requirement.
 (function () {
   var GITHUB_REPO = "OpenOSINT/OpenOSINT";
-  var PYPI_PACKAGE = "openosint";
   var GITHUB_CACHE_KEY = "openosint_github_stats";
   var GITHUB_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour — stay under the 60 req/hr unauthenticated limit
 
@@ -54,21 +59,5 @@
       });
   }
 
-  function loadPypiDownloads() {
-    fetch("https://pypistats.org/api/packages/" + PYPI_PACKAGE + "/recent")
-      .then(function (res) {
-        if (!res.ok) throw new Error("pypistats API error " + res.status);
-        return res.json();
-      })
-      .then(function (data) {
-        var lastMonth = data && data.data && data.data.last_month;
-        if (typeof lastMonth === "number") setMetric("pypi-downloads", formatNumber(lastMonth));
-      })
-      .catch(function () {
-        // keep the static fallback already rendered in the page
-      });
-  }
-
   loadGithubStats();
-  loadPypiDownloads();
 })();
