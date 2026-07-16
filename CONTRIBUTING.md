@@ -89,4 +89,4 @@ Use the issue templates on GitHub:
 - **New integration** — request to add a new OSINT data source or API.
 
 For sponsorship and partnership inquiries, email
-[openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry).
+[commercial@openosint.tech](mailto:commercial@openosint.tech?subject=OpenOSINT%20Sponsorship%20Inquiry).

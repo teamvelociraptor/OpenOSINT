@@ -106,7 +106,7 @@ openosint > investigate target@example.com
 <img src="https://raw.githubusercontent.com/OpenOSINT/OpenOSINT/main/docs/assets/ip2location-logo.png" alt="IP2Location — IP geolocation and threat intelligence provider" width="140">
 </a><br>
 <sub><b>IP2Location</b></sub><br>
-<sub>IP Geolocation &amp; IP Intelligence</sub><br>
+<sub>IP Geolocation &amp; Threat Intelligence</sub><br>
 <sub><em>Enhanced IP geolocation, ISP, VPN/Proxy/Tor detection.</em></sub>
 </td>
 <td align="center" valign="top" width="200">
@@ -119,9 +119,9 @@ openosint > investigate target@example.com
 </td>
 <td valign="top">
 <b>Your logo here</b><br>
-<sub>Open: <b>proxy detection</b> · <b>breach data</b> · <b>threat intel</b> · <b>email/identity</b></sub><br>
+<sub>Open: <b>breach data</b> · <b>email/identity</b></sub><br>
 <sub>One vendor per category — exclusive placement across README, docs, CLI, and Web UI.</sub><br><br>
-<sub><a href="https://openosint.tech/sponsors.html">Media kit &amp; pricing →</a> · <a href="https://opencollective.com/openosint_oss">Open Collective</a> · <a href="mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry">openosint@yahoo.com</a></sub>
+<sub><a href="https://openosint.tech/sponsors.html">Media kit &amp; pricing →</a> · <a href="https://opencollective.com/openosint_oss">Open Collective</a> · <a href="mailto:commercial@openosint.tech?subject=OpenOSINT%20Sponsorship%20Inquiry">commercial@openosint.tech</a></sub>
 </td>
 </tr>
 </table>
@@ -140,7 +140,7 @@ Need OpenOSINT wired into your SOC, fraud, threat-intel, or AI-agent stack?
 I build bespoke OSINT & MCP integrations for teams — you bring the data
 sources and compliance requirements, I deliver a working integration.
 
-→ **[Get in touch](mailto:openosint@yahoo.com?subject=OpenOSINT%20Custom%20Integration)**
+→ **[Get in touch](mailto:commercial@openosint.tech?subject=OpenOSINT%20Custom%20Integration)**
 
 ---
 
@@ -652,7 +652,7 @@ OpenOSINT is used by OSINT practitioners, security researchers, and developers a
 
 **Featured Integration** ($2,000/year or $220/month): recommended/default provider for one tool category, exclusive. Logo + badge across README, docs, CLI banner, and Web UI. One vendor per category.
 
-Open categories: **proxy detection** · **breach/credential data** · **threat & domain intel** · **email/identity lookup**
+Open categories: **breach/credential data** · **email/identity lookup**
 
 → Full media kit and pricing: [openosint.tech/sponsors.html](https://openosint.tech/sponsors.html)
 
@@ -660,23 +660,21 @@ Open categories: **proxy detection** · **breach/credential data** · **threat &
 
 <!-- SPONSORS:START -->
 
-<a href="https://www.ip2location.io/?utm_source=openosint&utm_medium=readme&utm_campaign=featured" rel="noopener sponsored">
-<img src="https://raw.githubusercontent.com/OpenOSINT/OpenOSINT/main/docs/assets/ip2location-logo.png" alt="IP2Location" width="140">
-</a>
+### Featured Integrations
 
-**[IP2Location.io](https://www.ip2location.io/?utm_source=openosint&utm_medium=readme&utm_campaign=featured)** — Featured Integration · IP Geolocation & IP Intelligence
+**[IP2Location.io](https://www.ip2location.io/?utm_source=openosint&utm_medium=readme&utm_campaign=featured)** — powers `search_ip2location`
 
-Enhanced IP geolocation, ISP, VPN/Proxy/Tor, and datacenter detection. Powers `search_ip2location`.
+> Enhanced IP geolocation, ISP, VPN/Proxy/Tor, and datacenter detection
 
-<a href="https://www.rapidproxy.io/?ref=openosint" rel="noopener sponsored">
-<img src="https://raw.githubusercontent.com/OpenOSINT/OpenOSINT/main/docs/assets/rapidproxy-logo.svg" alt="RapidProxy" width="140">
-</a>
+**[RapidProxy](https://www.rapidproxy.io/?ref=openosint)**
 
-**[RapidProxy](https://www.rapidproxy.io/?ref=openosint)** — Featured Integration · Residential Proxies
+> Reliable Residential Proxies for Data Collection & Automation — 90M+ IPs across 200+ countries. 10% off: RAPID10.
+
+_Want to sponsor OpenOSINT? See [SPONSORSHIP.md](SPONSORSHIP.md) for tiers and rates._
 
 <!-- SPONSORS:END -->
 
-[Open Collective](https://opencollective.com/openosint_oss) · [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) · [SPONSORSHIP.md](SPONSORSHIP.md)
+[Open Collective](https://opencollective.com/openosint_oss) · [commercial@openosint.tech](mailto:commercial@openosint.tech?subject=OpenOSINT%20Sponsorship%20Inquiry) · [SPONSORSHIP.md](SPONSORSHIP.md)
 
 ## SERVICES
 
@@ -700,7 +698,7 @@ Get OpenOSINT wired into your stack in 3–5 days — done-for-you, fully async,
 
 **[Book the Setup Sprint → $350 (founding price, first 5 teams)](https://tommasodev.gumroad.com/l/osint-mcp-setup-sprint)**
 
-→ Or email [openosint@yahoo.com](mailto:openosint@yahoo.com) · [LinkedIn](https://www.linkedin.com/company/openosintoss)
+→ Or email [commercial@openosint.tech](mailto:commercial@openosint.tech) · [LinkedIn](https://www.linkedin.com/company/openosintoss)
 
 *For authorized use only. See [DISCLAIMER.md](DISCLAIMER.md).*
 
@@ -729,7 +727,7 @@ See [`scripts/record-demo/README.md`](scripts/record-demo/README.md) for full pr
 - X (personal): https://x.com/SonoTommy_  
 - X (OpenOSINT): https://x.com/openosint_oss  
 - LinkedIn: https://www.linkedin.com/company/openosintoss  
-- Email: openosint@yahoo.com
+- Email: commercial@openosint.tech
 
 ## Contributors
 

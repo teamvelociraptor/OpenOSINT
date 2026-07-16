@@ -8,9 +8,9 @@ OpenOSINT is an open-source AI-powered OSINT framework used by security research
 
 | Metric | Value |
 |--------|-------|
-| GitHub stars | 607 |
-| GitHub forks | 105 |
-| PyPI downloads / month | 4,500 |
+| GitHub stars | ![GitHub stars](https://img.shields.io/github/stars/OpenOSINT/OpenOSINT?style=flat-square) |
+| GitHub forks | ![GitHub forks](https://img.shields.io/github/forks/OpenOSINT/OpenOSINT?style=flat-square) |
+| PyPI downloads / month | ![PyPI downloads](https://img.shields.io/pypi/dm/openosint?style=flat-square&label=PyPI%20downloads) |
 | Website visits / month | <!-- TODO: from analytics --> |
 | MCP Registry | Published — `io.github.OpenOSINT/openosint` |
 
@@ -43,11 +43,9 @@ Fiscal host: Open Collective / Open Source Collective — [opencollective.com/op
 
 | Category | Status |
 |----------|--------|
-| Residential & Datacenter Proxy Detection | **OPEN** |
 | Breach / Compromised-Credential Data | **OPEN** |
-| Threat & Domain Intelligence | **OPEN** |
 | Email / Identity Lookup | **OPEN** |
-| IP Geolocation & IP Intelligence | TAKEN — IP2Location.io |
+| IP Geolocation & Threat Intelligence | TAKEN — IP2Location.io |
 | Residential Proxies | TAKEN — RapidProxy |
 
 ## Referral funnel
@@ -83,13 +81,13 @@ CLI banner, Web UI, and `openosint sponsors` update automatically at runtime.
 
 ## Current sponsors
 
-**[IP2Location.io](https://www.ip2location.io)** — Featured Integration (IP Geolocation & IP Intelligence)
+**[IP2Location.io](https://www.ip2location.io)** — Featured Integration (IP Geolocation & Threat Intelligence)
 
 **[RapidProxy](https://www.rapidproxy.io/?ref=openosint)** — Featured Integration (Residential Proxies)
 
 ## Contact
 
-- Email: [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry)
+- Email: [commercial@openosint.tech](mailto:commercial@openosint.tech?subject=OpenOSINT%20Sponsorship%20Inquiry)
 - Open Collective: [opencollective.com/openosint_oss](https://opencollective.com/openosint_oss)
 - Website: [openosint.tech/sponsors.html](https://openosint.tech/sponsors.html)
 

@@ -3,7 +3,7 @@
 # Privacy Policy
 
 **Effective date:** 2026-06-13
-**Data controller:** Tommaso Bertocchi, contact openosint@yahoo.com.
+**Data controller:** Tommaso Bertocchi, contact commercial@openosint.tech.
 
 This policy explains how we process personal data when you use OpenOSINT Cloud (the "Service").
 
@@ -34,7 +34,7 @@ We use: **Gumroad** (payments / Merchant of Record for digital products), **Hero
 
 ## 6. Your rights
 
-Under the GDPR you have rights of access, rectification, erasure, restriction, portability, and objection. To exercise them, contact openosint@yahoo.com. You may lodge a complaint with your supervisory authority — in Italy, the **Garante per la protezione dei dati personali**.
+Under the GDPR you have rights of access, rectification, erasure, restriction, portability, and objection. To exercise them, contact commercial@openosint.tech. You may lodge a complaint with your supervisory authority — in Italy, the **Garante per la protezione dei dati personali**.
 
 ## 7. Security
 

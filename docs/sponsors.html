@@ -14,6 +14,7 @@
 <meta property="og:site_name" content="OpenOSINT">
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="stylesheet" href="style.css">
+<script src="assets/metrics.js" defer></script>
 <style>
   .sponsor-logo-box {
     display: inline-block;
@@ -246,7 +247,7 @@
 
 <div class="cta-row">
   <a href="https://opencollective.com/openosint_oss" target="_blank" rel="noopener" class="cta-btn cta-btn-primary">Become a sponsor &#8599;</a>
-  <a href="mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry" class="cta-btn">Email us</a>
+  <a href="mailto:commercial@openosint.tech?subject=OpenOSINT%20Sponsorship%20Inquiry" class="cta-btn">Email us</a>
 </div>
 </div>
 
@@ -262,16 +263,15 @@
 
 <div class="metrics-grid">
   <div class="metric-cell">
-    <div class="metric-num">607</div>
+    <div class="metric-num" data-metric="stars">1,017</div>
     <div class="metric-label">GitHub Stars</div>
   </div>
   <div class="metric-cell">
-    <div class="metric-num">105</div>
+    <div class="metric-num" data-metric="forks">155</div>
     <div class="metric-label">GitHub Forks</div>
   </div>
   <div class="metric-cell">
-    <div class="metric-num">4,500</div>
-    <div class="metric-label">PyPI installs / month</div>
+    <img src="https://img.shields.io/pypi/dm/openosint?style=flat-square&label=PyPI%20downloads%2Fmonth" alt="PyPI downloads per month" style="margin-top:6px;">
   </div>
   <div class="metric-cell">
     <div class="metric-num">16</div>
@@ -334,7 +334,7 @@
 </div>
 
 <p>Fiscal host: <b>Open Collective / Open Source Collective</b>.</p>
-<p>For custom arrangements &mdash; multi-year contracts, invoicing, category inquiries &mdash; email <a href="mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry">openosint@yahoo.com</a>.</p>
+<p>For custom arrangements &mdash; multi-year contracts, invoicing, category inquiries &mdash; email <a href="mailto:commercial@openosint.tech?subject=OpenOSINT%20Sponsorship%20Inquiry">commercial@openosint.tech</a>.</p>
 </div>
 
 <h2 id="categories">OPEN CATEGORIES</h2>
@@ -342,15 +342,7 @@
 <p>Each category holds <b>one</b> Featured Integration. A taken category cannot be contested while the sponsorship is active. Open categories are available immediately.</p>
 
 <div class="category-row">
-  <div class="category-name">Residential &amp; Datacenter Proxy Detection</div>
-  <span class="pill pill-open">OPEN</span>
-</div>
-<div class="category-row">
   <div class="category-name">Breach / Compromised-Credential Data</div>
-  <span class="pill pill-open">OPEN</span>
-</div>
-<div class="category-row">
-  <div class="category-name">Threat &amp; Domain Intelligence</div>
   <span class="pill pill-open">OPEN</span>
 </div>
 <div class="category-row">
@@ -358,7 +350,7 @@
   <span class="pill pill-open">OPEN</span>
 </div>
 <div class="category-row">
-  <div class="category-name">IP Geolocation &amp; IP Intelligence</div>
+  <div class="category-name">IP Geolocation &amp; Threat Intelligence</div>
   <span class="pill pill-taken">TAKEN &mdash; IP2Location.io</span>
 </div>
 <div class="category-row">
@@ -390,12 +382,12 @@
 <div class="indent">
 <div class="cta-row">
   <a href="https://opencollective.com/openosint_oss" target="_blank" rel="noopener" class="cta-btn cta-btn-primary">Open Collective &#8599;</a>
-  <a href="mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry" class="cta-btn">openosint@yahoo.com</a>
+  <a href="mailto:commercial@openosint.tech?subject=OpenOSINT%20Sponsorship%20Inquiry" class="cta-btn">commercial@openosint.tech</a>
 </div>
 
 <table>
 <tr><th>Channel</th><th>Detail</th></tr>
-<tr><td>Email</td><td><a href="mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry">openosint@yahoo.com</a></td></tr>
+<tr><td>Email</td><td><a href="mailto:commercial@openosint.tech?subject=OpenOSINT%20Sponsorship%20Inquiry">commercial@openosint.tech</a></td></tr>
 <tr><td>Open Collective</td><td><a href="https://opencollective.com/openosint_oss" target="_blank" rel="noopener">opencollective.com/openosint_oss</a></td></tr>
 <tr><td>GitHub</td><td><a href="https://github.com/OpenOSINT/OpenOSINT/issues" target="_blank" rel="noopener">Open an issue</a></td></tr>
 </table>
@@ -433,7 +425,7 @@ var SPONSORS = [
     url:         "https://www.ip2location.com",
     logo:        "assets/ip2location-logo.png",
     logo_alt:    "IP2Location logo — IP geolocation and threat intelligence provider",
-    category:    "IP Geolocation &amp; IP Intelligence",
+    category:    "IP Geolocation &amp; Threat Intelligence",
     description: "Enhanced IP geolocation, ISP, domain, ASN, and (Security Plan) VPN/proxy/Tor/datacenter detection.",
     tool:        "search_ip2location"
   },

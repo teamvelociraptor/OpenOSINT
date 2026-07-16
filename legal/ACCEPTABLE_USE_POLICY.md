@@ -42,7 +42,7 @@ We may suspend or terminate access immediately, without refund, for any actual o
 
 ## 7. Reporting abuse
 
-Report suspected misuse to openosint@yahoo.com.
+Report suspected misuse to commercial@openosint.tech.
 
 ## 8. Changes
 

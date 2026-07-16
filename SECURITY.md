@@ -28,7 +28,7 @@ This keeps the report confidential until a fix is released and lets us coordinat
 
 If you cannot use GitHub's advisory form, send a report to:
 
-**[openosint@yahoo.com](mailto:openosint@yahoo.com)**
+**[commercial@openosint.tech](mailto:commercial@openosint.tech)**
 
 Include:
 - A clear description of the vulnerability
@@ -86,5 +86,5 @@ Researchers who report valid vulnerabilities will be **credited by name in the a
 
 ---
 
-*OpenOSINT is maintained by [Tommaso Bertocchi](mailto:openosint@yahoo.com).
+*OpenOSINT is maintained by [Tommaso Bertocchi](mailto:commercial@openosint.tech).
 The project is MIT-licensed and for authorized security research and educational use only.*
