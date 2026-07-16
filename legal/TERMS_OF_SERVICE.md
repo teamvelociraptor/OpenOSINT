@@ -3,7 +3,7 @@
 # Terms of Service
 
 **Effective date:** 2026-06-13
-**Operator:** Tommaso Bertocchi ("we", "us"), contact openosint@yahoo.com.
+**Operator:** Tommaso Bertocchi ("we", "us"), contact commercial@openosint.tech.
 
 By accessing or using OpenOSINT Cloud (the "Service"), you agree to these Terms.
 
@@ -57,4 +57,4 @@ These Terms are governed by the laws of Italy, and disputes are subject to the c
 
 ## 13. Contact
 
-openosint@yahoo.com
+commercial@openosint.tech
