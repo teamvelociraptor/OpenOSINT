@@ -8,7 +8,7 @@ body:
       value: |
         Use this form to propose adding a new data source, external API, or command-line
         tool to OpenOSINT. If you are interested in Featured Integration sponsorship,
-        email openosint@yahoo.com instead.
+        email commercial@openosint.tech instead.
 
   - type: input
     id: name

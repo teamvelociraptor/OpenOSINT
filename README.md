@@ -121,7 +121,7 @@ openosint > investigate target@example.com
 <b>Your logo here</b><br>
 <sub>Open: <b>breach data</b> · <b>email/identity</b></sub><br>
 <sub>One vendor per category — exclusive placement across README, docs, CLI, and Web UI.</sub><br><br>
-<sub><a href="https://openosint.tech/sponsors.html">Media kit &amp; pricing →</a> · <a href="https://opencollective.com/openosint_oss">Open Collective</a> · <a href="mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry">openosint@yahoo.com</a></sub>
+<sub><a href="https://openosint.tech/sponsors.html">Media kit &amp; pricing →</a> · <a href="https://opencollective.com/openosint_oss">Open Collective</a> · <a href="mailto:commercial@openosint.tech?subject=OpenOSINT%20Sponsorship%20Inquiry">commercial@openosint.tech</a></sub>
 </td>
 </tr>
 </table>
@@ -140,7 +140,7 @@ Need OpenOSINT wired into your SOC, fraud, threat-intel, or AI-agent stack?
 I build bespoke OSINT & MCP integrations for teams — you bring the data
 sources and compliance requirements, I deliver a working integration.
 
-→ **[Get in touch](mailto:openosint@yahoo.com?subject=OpenOSINT%20Custom%20Integration)**
+→ **[Get in touch](mailto:commercial@openosint.tech?subject=OpenOSINT%20Custom%20Integration)**
 
 ---
 
@@ -674,7 +674,7 @@ _Want to sponsor OpenOSINT? See [SPONSORSHIP.md](SPONSORSHIP.md) for tiers and r
 
 <!-- SPONSORS:END -->
 
-[Open Collective](https://opencollective.com/openosint_oss) · [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) · [SPONSORSHIP.md](SPONSORSHIP.md)
+[Open Collective](https://opencollective.com/openosint_oss) · [commercial@openosint.tech](mailto:commercial@openosint.tech?subject=OpenOSINT%20Sponsorship%20Inquiry) · [SPONSORSHIP.md](SPONSORSHIP.md)
 
 ## SERVICES
 
@@ -698,7 +698,7 @@ Get OpenOSINT wired into your stack in 3–5 days — done-for-you, fully async,
 
 **[Book the Setup Sprint → $350 (founding price, first 5 teams)](https://tommasodev.gumroad.com/l/osint-mcp-setup-sprint)**
 
-→ Or email [openosint@yahoo.com](mailto:openosint@yahoo.com) · [LinkedIn](https://www.linkedin.com/company/openosintoss)
+→ Or email [commercial@openosint.tech](mailto:commercial@openosint.tech) · [LinkedIn](https://www.linkedin.com/company/openosintoss)
 
 *For authorized use only. See [DISCLAIMER.md](DISCLAIMER.md).*
 
@@ -727,7 +727,7 @@ See [`scripts/record-demo/README.md`](scripts/record-demo/README.md) for full pr
 - X (personal): https://x.com/SonoTommy_  
 - X (OpenOSINT): https://x.com/openosint_oss  
 - LinkedIn: https://www.linkedin.com/company/openosintoss  
-- Email: openosint@yahoo.com
+- Email: commercial@openosint.tech
 
 ## Contributors
 

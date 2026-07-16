@@ -87,7 +87,7 @@ CLI banner, Web UI, and `openosint sponsors` update automatically at runtime.
 
 ## Contact
 
-- Email: [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry)
+- Email: [commercial@openosint.tech](mailto:commercial@openosint.tech?subject=OpenOSINT%20Sponsorship%20Inquiry)
 - Open Collective: [opencollective.com/openosint_oss](https://opencollective.com/openosint_oss)
 - Website: [openosint.tech/sponsors.html](https://openosint.tech/sponsors.html)
 

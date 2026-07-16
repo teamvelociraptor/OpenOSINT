@@ -25,4 +25,4 @@ This software is provided "as is", without warranty of any kind. The maintainer 
 Users are solely responsible for ensuring their use of OpenOSINT complies with applicable laws and regulations in their jurisdiction.
 
 ---
-Maintained by **Tommaso Bertocchi** — openosint@yahoo.com
+Maintained by **Tommaso Bertocchi** — commercial@openosint.tech
