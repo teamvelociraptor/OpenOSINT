@@ -197,6 +197,110 @@ a:visited {
 }
 
 /* ------------------------------------------------------------------ */
+/* CTA component — free/paid conversion blocks (blog, tools, product)  */
+/* ------------------------------------------------------------------ */
+
+.oo-cta {
+  border: 1px solid #1f2a44;
+  background: #0b1220;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 32px 0;
+}
+
+.oo-cta strong {
+  color: #e6edf3;
+  font-size: 1.05rem;
+}
+
+.oo-cta p {
+  color: #9fb0c3;
+  margin: 8px 0 14px;
+  text-align: left;
+  font-size: 0.92rem;
+}
+
+.oo-cta-btn {
+  display: inline-block;
+  background: #3fb950;
+  color: #000000 !important;
+  padding: 10px 20px;
+  border-radius: 4px;
+  text-decoration: none !important;
+  font-weight: bold;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.oo-cta-btn:hover { background: #2ea043; }
+
+.oo-cta-btn--ghost {
+  background: transparent;
+  border: 1px solid #3fb950;
+  color: #3fb950 !important;
+}
+
+.oo-cta-btn--ghost:hover { background: #3fb950; color: #000000 !important; }
+
+.oo-cta-sub {
+  margin: 12px 0 0 !important;
+  font-size: 0.82rem;
+  color: #556270;
+}
+
+.oo-cta-sub a { color: #9fb0c3; }
+
+.oo-cta-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.oo-cta-row .oo-cta { flex: 1; min-width: 240px; margin: 0; }
+
+.oo-cta-compare {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+.oo-cta-compare > div {
+  flex: 1;
+  min-width: 190px;
+  border: 1px solid #1f2a44;
+  background: #0b1220;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.oo-cta-compare > div.featured { border-color: #3fb950; }
+
+.oo-cta-compare h4 {
+  color: #e6edf3;
+  font-family: monospace;
+  font-size: 0.92rem;
+  margin-bottom: 4px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.oo-cta-compare .price {
+  color: #3fb950;
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin: 6px 0;
+}
+
+.oo-cta-compare p {
+  color: #9fb0c3;
+  font-size: 0.8rem;
+  text-align: left;
+  margin: 8px 0 10px;
+}
+
+/* ------------------------------------------------------------------ */
 /* Dark mode — terminal users                                           */
 /* ------------------------------------------------------------------ */
 
