@@ -137,7 +137,7 @@ openosint > investigate target@example.com
 ## Custom Integrations
 
 Need OpenOSINT wired into your SOC, fraud, threat-intel, or AI-agent stack?
-I build bespoke OSINT & MCP integrations for teams — you bring the data
+I build bespoke OSINT integrations for teams — you bring the data
 sources and compliance requirements, I deliver a working integration.
 
 → **[Get in touch](mailto:commercial@openosint.tech?subject=OpenOSINT%20Custom%20Integration)**
