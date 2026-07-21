@@ -1,319 +1,531 @@
-# openosint/pivot.py
 """
-Auto-pivot investigation engine.
+Recursive pivot engine for the dossier compound tool (DOCTRINE.md §4.5).
 
-investigate_graph() performs a budget-bounded BFS starting from a seed value,
-detects the seed's entity type, routes it to the appropriate OSINT tools,
-extracts new entities from each result, and enqueues high-confidence discoveries
-for further investigation — until depth, entity count, or tool-call budgets
-are exhausted.
+``investigate_recursive()`` runs a budget-bounded BFS starting from a seed
+value, detects the seed's entity type, routes it to the relevant OSINT tools,
+parses the raw text output for *new* identifiers (emails, usernames, domains,
+IPs), and enqueues high-confidence discoveries for further investigation at
+the next BFS depth — until depth, entity-count, or tool-call budgets are
+exhausted.
+
+Designed to feed into ``dossier.run_dossier()``: each depth layer produces a
+set of entity discoveries with confidence scores.  The deepest layers (furthest
+from the seed) have lower confidence, so the final LLM synthesis can weigh them
+accordingly.
 
 Budget caps are non-negotiable to prevent runaway cost / latency.
-All tool calls are performed concurrently within each BFS depth layer.
-Missing API keys skip tools gracefully; no exceptions propagate to the caller.
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
-import os
-from collections import deque
+import re
+from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any
-
-from openosint.correlation import (
-    Entity,
-    EntityGraph,
-    EntityType,
-    Relationship,
-    make_entity,
-)
-from openosint.extractors import EXTRACTOR_REGISTRY
-from openosint.regexes import detect_entity_kind
 
 logger = logging.getLogger(__name__)
 
+
 # ---------------------------------------------------------------------------
-# Constants
+# Entity type detection from raw values
 # ---------------------------------------------------------------------------
 
-_PIVOT_MIN_CONFIDENCE: float = 0.6
-
-_KIND_TO_ENTITY_TYPE: dict[str, EntityType] = {
-    "email": EntityType.EMAIL,
-    "url": EntityType.URL,
-    "ip": EntityType.IP,
-    "hash": EntityType.HASH,
-    "phone": EntityType.PHONE,
-    "domain": EntityType.DOMAIN,
-    "username": EntityType.USERNAME,
-    "person": EntityType.PERSON,
-}
+_EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
+_IP_RE = re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")
+_DOMAIN_RE = re.compile(r"\b(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\b")
+_USERNAME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9_.-]{2,30}$")
+_PHONE_RE = re.compile(r"\+?\d{7,15}")
 
 
-def _detect_entity_type(value: str) -> Entity:
-    """Detect the entity type of *value* and return a seed Entity."""
+class Kind(str, Enum):
+    """Entity kinds that the pivot engine can detect and re-investigate."""
+    EMAIL = "email"
+    USERNAME = "username"
+    DOMAIN = "domain"
+    IP = "ip"
+    PHONE = "phone"
+    UNKNOWN = "unknown"
+
+
+def detect_kind(value: str) -> Kind:
     v = value.strip()
-    entity_type = _KIND_TO_ENTITY_TYPE.get(detect_entity_kind(v), EntityType.USERNAME)
-    return make_entity(entity_type, v, 1.0)
+    if _EMAIL_RE.fullmatch(v):
+        return Kind.EMAIL
+    if _IP_RE.fullmatch(v):
+        return Kind.IP
+    if _PHONE_RE.fullmatch(v) and len(v) >= 7:
+        return Kind.PHONE
+    if _DOMAIN_RE.fullmatch(v) and not v.startswith(".") and v.count(".") >= 1:
+        return Kind.DOMAIN
+    if _USERNAME_RE.match(v):
+        return Kind.USERNAME
+    return Kind.UNKNOWN
 
 
 # ---------------------------------------------------------------------------
-# Tool routing table
+# Data structures
 # ---------------------------------------------------------------------------
 
-_TOOL_ROUTES: dict[EntityType, list[str]] = {
-    EntityType.EMAIL: ["search_email", "search_breach", "search_footprint"],
-    EntityType.USERNAME: ["search_username", "search_github", "search_footprint"],
-    EntityType.DOMAIN: ["search_dns", "search_whois", "search_domain", "search_footprint"],
-    EntityType.IP: ["search_ip", "search_shodan", "search_abuseipdb"],
-    EntityType.PHONE: ["search_phone", "search_footprint"],
-    EntityType.HASH: ["search_virustotal"],
-    EntityType.URL: [],
-    EntityType.PERSON: ["search_footprint"],
-    EntityType.ORG: [],
-    EntityType.ASN: [],
+
+@dataclass(frozen=True)
+class PivotEntity:
+    """A discovered entity at a given BFS depth with confidence."""
+    value: str
+    kind: Kind
+    depth: int
+    confidence: float  # decays with depth
+    source_tool: str   # which tool produced this entity
+    source_target: str # the input that produced this entity
+
+
+@dataclass
+class LayerResult:
+    """Results from one BFS depth layer."""
+    depth: int
+    seed_entity: str
+    tool_results: dict[str, str]  # tool_name → raw output
+    discovered: list[PivotEntity]  # entities found in this layer
+
+
+# ---------------------------------------------------------------------------
+# Entity extraction from tool output
+# ---------------------------------------------------------------------------
+
+# Which entity kinds each tool tends to reveal
+_TOOL_EXTRACTS: dict[str, list[Kind]] = {
+    "search_email":     [Kind.USERNAME, Kind.DOMAIN, Kind.EMAIL],
+    "search_breach":    [Kind.EMAIL, Kind.USERNAME],
+    "search_username":  [Kind.EMAIL, Kind.DOMAIN],
+    "search_whois":     [Kind.EMAIL, Kind.DOMAIN],
+    "search_dns":       [Kind.IP, Kind.DOMAIN],
+    "search_domain":    [Kind.IP, Kind.DOMAIN],
+    "search_ip":        [Kind.DOMAIN, Kind.IP],
+    "search_github":    [Kind.EMAIL, Kind.USERNAME],
+    "search_paste":     [Kind.EMAIL, Kind.USERNAME, Kind.DOMAIN],
+    "search_shodan":    [Kind.IP, Kind.DOMAIN],
+    "search_virustotal":[Kind.DOMAIN, Kind.IP],
+    "search_phone":     [Kind.USERNAME, Kind.EMAIL],
+    "search_abuseipdb": [Kind.DOMAIN, Kind.IP],
+    "generate_dorks":   [],
+    "search_ip2location":[Kind.DOMAIN, Kind.IP],
 }
 
-# API keys required per tool (empty list = no key needed to call this tool)
-_TOOL_REQUIRED_KEYS: dict[str, list[str]] = {
-    "search_email": [],
-    "search_breach": ["HIBP_API_KEY"],
-    "search_username": [],
-    "search_github": [],
-    "search_dns": [],
-    "search_whois": [],
-    "search_domain": [],
-    "search_ip": [],
-    "search_shodan": ["SHODAN_API_KEY"],
-    "search_abuseipdb": ["ABUSEIPDB_API_KEY"],
-    "search_phone": [],
-    "search_virustotal": ["VIRUSTOTAL_API_KEY"],
-    "search_censys": ["CENSYS_API_ID", "CENSYS_SECRET"],
-    "search_footprint": ["BRIGHTDATA_API_KEY", "BRIGHTDATA_SERP_ZONE"],
+# ── Tool → arg key name mapping (same as dossier._TOOL_CHAIN) ──────────────
+
+_TOOL_ARG_KEY: dict[str, str] = {
+    "search_email": "email",
+    "search_breach": "email",
+    "search_username": "username",
+    "search_whois": "domain",
+    "search_dns": "domain",
+    "search_domain": "domain",
+    "search_ip": "ip",
+    "search_github": "query",
+    "search_paste": "query",
+    "search_shodan": "query",
+    "search_virustotal": "target",
+    "search_phone": "phone",
+    "search_censys": "target",
+    "search_abuseipdb": "ip",
+    "search_ip2location": "ip",
+    "generate_dorks": "target",
 }
 
+# ── Tool routing for each entity kind ──────────────────────────────────────
 
-def _is_key_available(tool_name: str) -> bool:
-    """Return True if all required API keys for *tool_name* are present."""
-    return all(
-        os.environ.get(key, "").strip()
-        for key in _TOOL_REQUIRED_KEYS.get(tool_name, [])
+_KIND_TO_TOOLS: dict[Kind, list[str]] = {
+    Kind.EMAIL:    ["search_email", "search_breach", "search_paste"],
+    Kind.USERNAME: ["search_username", "search_github", "search_paste"],
+    Kind.DOMAIN:   ["search_dns", "search_whois", "search_domain"],
+    Kind.IP:       ["search_ip", "search_shodan", "search_abuseipdb"],
+    Kind.PHONE:    ["search_phone"],
+    Kind.UNKNOWN:  ["generate_dorks"],
+}
+
+# ── Confidence constants ──────────────────────────────────────────────────
+
+_BASE_CONFIDENCE: dict[Kind, float] = {
+    Kind.EMAIL: 0.90,
+    Kind.USERNAME: 0.85,
+    Kind.DOMAIN: 0.85,
+    Kind.IP: 0.80,
+    Kind.PHONE: 0.75,
+    Kind.UNKNOWN: 0.50,
+}
+
+_CONFIDENCE_DECAY_PER_DEPTH: float = 0.20   # each BFS hop reduces confidence by 20%
+_MIN_CONFIDENCE_TO_ENQUEUE: float = 0.35     # don't recurse on low-confidence finds
+
+
+def _confidence(kind: Kind, depth: int) -> float:
+    base = _BASE_CONFIDENCE.get(kind, 0.5)
+    return max(0.10, base - depth * _CONFIDENCE_DECAY_PER_DEPTH)
+
+
+# ---------------------------------------------------------------------------
+# Raw text parsing — extract identifiers from tool output
+# ---------------------------------------------------------------------------
+
+def _extract_emails(text: str) -> set[str]:
+    return set(_EMAIL_RE.findall(text))
+
+
+def _extract_ips(text: str) -> set[str]:
+    """Return valid IPv4 addresses.  Filters out common non-routable ranges
+    that are likely noise (0.x, 127.x, 10.x, 172.16-31.x, 192.168.x)."""
+    from ipaddress import ip_address, IPv4Address
+
+    raw = _IP_RE.findall(text)
+    valid: set[str] = set()
+    for r in raw:
+        try:
+            addr = ip_address(r)
+            if isinstance(addr, IPv4Address) and not (
+                addr.is_private or addr.is_loopback or addr.is_unspecified
+            ):
+                valid.add(r)
+        except ValueError:
+            continue
+    return valid
+
+
+def _extract_domains(text: str) -> set[str]:
+    """Extract likely domain names.  Filters out email addresses (those
+    get their own handler) and common noise like time formats or version
+    strings."""
+    candidates = _DOMAIN_RE.findall(text.lower())
+    # Reject email addresses (handled by _extract_emails) and common noise
+    skip = {"example.com", "localhost", "local"}
+    result: set[str] = set()
+    for c in candidates:
+        if c in skip:
+            continue
+        if _EMAIL_RE.fullmatch(c):
+            continue
+        result.add(c)
+    return result
+
+
+def _extract_usernames(text: str) -> set[str]:
+    """Extract likely usernames from tool output.  Tries to find patterns
+    like '[+] platform: https://site.com/user' (sherlock format) or
+    'Username: value' lines."""
+    # Sherlock-style: [+] PlatformName: https://site.com/username
+    sherlock = re.findall(r"\[\+\]\s+\S+:\s+https?://\S+/([a-zA-Z][a-zA-Z0-9_.-]+)", text)
+    # Holehe-style: [+] platform.com  (but also has [-] lines)
+    # Generic: look for "Username:" / "User:" / "username:" patterns
+    labeled = re.findall(
+        r"(?:user(?:name)?|account|handle)[:\s]+([a-zA-Z][a-zA-Z0-9_.-]{2,30})",
+        text,
+        re.IGNORECASE,
     )
+    return set(sherlock) | set(labeled)
 
 
-def _get_routable_tools(entity: Entity) -> list[str]:
-    """Return tools applicable to *entity* whose required keys are present."""
-    candidates = _TOOL_ROUTES.get(entity.type, [])
-    return [t for t in candidates if _is_key_available(t)]
-
-
-# ---------------------------------------------------------------------------
-# Safe tool runner
-# ---------------------------------------------------------------------------
-
-
-def _build_arg_map(tool_name: str, entity: Entity) -> dict[str, Any]:
-    """Map entity value to the correct parameter name expected by each tool."""
-    value = entity.value
-    param_map: dict[str, dict[str, str]] = {
-        "search_email": {"email": value},
-        "search_breach": {"email": value},
-        "search_username": {"username": value},
-        "search_github": {"query": value},
-        "search_dns": {"domain": value},
-        "search_whois": {"domain": value},
-        "search_domain": {"domain": value},
-        "search_ip": {"ip": value},
-        "search_shodan": {"query": value},
-        "search_abuseipdb": {"ip": value},
-        "search_phone": {"phone": value},
-        "search_virustotal": {"target": value},
-        "search_censys": {"target": value},
-        "search_footprint": {"target": value},
+def _extract_for_kind(text: str, kind: Kind) -> set[str]:
+    mapping = {
+        Kind.EMAIL: _extract_emails,
+        Kind.IP: _extract_ips,
+        Kind.DOMAIN: _extract_domains,
+        Kind.USERNAME: _extract_usernames,
     }
-    return param_map.get(tool_name, {"input": value})
-
-
-async def _run_tool_safe(
-    tool_name: str,
-    entity: Entity,
-    timeout_seconds: int,
-) -> str:
-    """Invoke a tool by name; return empty string on any failure."""
-    from openosint.agent import _TOOL_MAP
-
-    handler = _TOOL_MAP.get(tool_name)
-    if handler is None:
-        logger.debug("pivot: no handler for '%s'", tool_name)
-        return ""
-
-    arg_map = _build_arg_map(tool_name, entity)
-    try:
-        result: Any = await asyncio.wait_for(handler(arg_map), timeout=float(timeout_seconds))
-        return str(result) if result is not None else ""
-    except asyncio.TimeoutError:
-        logger.debug("pivot: tool '%s' timed out after %ss", tool_name, timeout_seconds)
-        return ""
-    except Exception as exc:
-        logger.debug("pivot: tool '%s' raised %s", tool_name, exc)
-        return ""
+    extractor = mapping.get(kind)
+    if extractor is None:
+        return set()
+    return extractor(text)
 
 
 # ---------------------------------------------------------------------------
-# BFS auto-pivot engine
+# BFS recursive investigation
 # ---------------------------------------------------------------------------
 
 
-async def investigate_graph(
+async def investigate_recursive(
     seed: str,
     *,
     max_depth: int = 2,
-    max_entities: int = 40,
-    max_tool_calls: int = 60,
-    timeout_seconds: int = 30,
-) -> EntityGraph:
-    """Build an entity correlation graph by BFS-pivoting from *seed*.
+    max_entities_to_enqueue: int = 20,
+    max_tool_calls: int = 40,
+    tool_timeout: int = 30,
+) -> list[LayerResult]:
+    """Run a budget-bounded BFS investigation from ``seed``.
 
     Parameters
     ----------
     seed:
-        Starting target value (email, domain, IP, username, phone, hash, URL).
+        Starting value (email, domain, IP, username, phone).
     max_depth:
-        Maximum BFS hops from the seed.
-    max_entities:
-        Hard cap on number of distinct entities investigated (not total in graph).
+        Maximum BFS hops from the seed (default 2).
+    max_entities_to_enqueue:
+        Maximum total entities to enqueue for further investigation
+        across all depth layers (default 20).
     max_tool_calls:
-        Hard cap on total tool invocations across the entire run.
-    timeout_seconds:
-        Per-tool-call timeout in seconds.
+        Hard cap on total tool invocations across the entire run (default 40).
+    tool_timeout:
+        Per-tool-call timeout in seconds (default 30).
 
     Returns
     -------
-    EntityGraph
-        The populated graph. Never raises — returns a partial graph on errors.
+    list[LayerResult]
+        One ``LayerResult`` per depth layer investigated.  Never raises —
+        returns partial results on errors.  The first entry (depth=0) is
+        always present and covers the seed itself.
     """
-    graph = EntityGraph()
+    from openosint.dossier import _HANDLERS, _chain_for, _infer_target_type
 
-    seed_entity = _detect_entity_type(seed)
-    graph.add_entity(seed_entity)
-
-    queue: deque[tuple[Entity, int]] = deque([(seed_entity, 0)])
-    investigated: set[tuple[EntityType, str]] = set()
-    queued: set[tuple[EntityType, str]] = {(seed_entity.type, seed_entity.normalized)}
+    layers: list[LayerResult] = []
+    investigated: set[tuple[Kind, str]] = set()  # already visited
+    queue: list[tuple[str, Kind, int]] = []       # (value, kind, depth)
+    enqueued: set[tuple[Kind, str]] = set()       # in queue (dedup)
     call_count = 0
-    entities_investigated = 0
 
-    while queue:
-        if call_count >= max_tool_calls:
-            logger.debug("pivot: max_tool_calls=%d reached", max_tool_calls)
-            break
+    seed_kind = detect_kind(seed)
+    if seed_kind == Kind.UNKNOWN:
+        seed_kind = Kind.DOMAIN  # fallback
+    queue.append((seed, seed_kind, 0))
+    enqueued.add((seed_kind, seed.lower()))
 
-        entity, depth = queue.popleft()
-        key = (entity.type, entity.normalized)
-
+    while queue and call_count < max_tool_calls:
+        value, kind, depth = queue.pop(0)
+        key = (kind, value.lower())
         if key in investigated:
             continue
         investigated.add(key)
 
-        if depth >= max_depth:
-            continue
+        if depth > 0:
+            logger.debug("pivot: depth=%d investigating %s (%s)", depth, value, kind.value)
 
-        if entities_investigated >= max_entities:
-            logger.debug("pivot: max_entities=%d reached", max_entities)
-            break
-        entities_investigated += 1
+        # Map kind to the right tool chain
+        if kind in (Kind.EMAIL, Kind.USERNAME, Kind.PHONE, Kind.IP, Kind.DOMAIN):
+            # Use dossier's tool chain for known types
+            ttype = {
+                Kind.EMAIL: "email",
+                Kind.USERNAME: "username",
+                Kind.PHONE: "phone",
+                Kind.IP: "ip",
+                Kind.DOMAIN: "domain",
+            }[kind]
+            chain = _chain_for(ttype)
+        else:
+            chain = [("generate_dorks", "target")]
 
-        tools = _get_routable_tools(entity)
-        if not tools:
-            continue
-
-        # Slice the batch to never exceed the remaining call budget
+        # Limit chain by remaining budget
         remaining = max_tool_calls - call_count
-        batch = tools[:remaining]
-        call_count += len(batch)
+        chain = chain[:remaining]
+        call_count += len(chain)
 
-        logger.debug(
-            "pivot: depth=%d entity=%s(%s) tools=%s",
-            depth,
-            entity.type.value,
-            entity.normalized,
-            batch,
-        )
-
-        results = await asyncio.gather(
-            *[_run_tool_safe(t, entity, timeout_seconds) for t in batch]
-        )
-
-        for tool_name, raw in zip(batch, results):
-            extractor = EXTRACTOR_REGISTRY.get(tool_name)
-            if extractor is None or not raw:
-                continue
-
+        # Run tools concurrently
+        async def _run_one(tool_name: str, arg_key: str) -> tuple[str, str]:
+            if tool_name not in _HANDLERS:
+                return tool_name, f"[{tool_name} not available]"
+            handler, _ = _HANDLERS[tool_name]
             try:
-                new_entities, new_rels = extractor(raw, entity)
+                text = await asyncio.wait_for(
+                    handler({arg_key: value}),
+                    timeout=float(tool_timeout),
+                )
+                return tool_name, str(text) if text else ""
+            except asyncio.TimeoutError:
+                return tool_name, f"[{tool_name} timed out]"
             except Exception as exc:
-                logger.debug("pivot: extractor for '%s' raised %s", tool_name, exc)
+                return tool_name, f"[{tool_name} error: {exc}]"
+
+        results_list = await asyncio.gather(
+            *(_run_one(name, key) for name, key in chain)
+        )
+        results: dict[str, str] = dict(results_list)
+
+        # Extract new entities from tool outputs
+        discovered: list[PivotEntity] = []
+        for tool_name, output in results_list:
+            if not output or output.startswith("["):
                 continue
-
-            for new_e in new_entities:
-                canonical = graph.add_entity(new_e)
-                ekey = (canonical.type, canonical.normalized)
-                should_enqueue = (
-                    canonical.confidence >= _PIVOT_MIN_CONFIDENCE
-                    and ekey not in investigated
-                    and ekey not in queued
-                    and len(graph._entities) <= max_entities
-                    and call_count < max_tool_calls
-                )
-                if should_enqueue:
-                    queued.add(ekey)
-                    queue.append((canonical, depth + 1))
-
-            for rel in new_rels:
-                canonical_src = graph.add_entity(rel.source)
-                canonical_tgt = graph.add_entity(rel.target)
-                graph.add_relationship(
-                    Relationship(
-                        source=canonical_src,
-                        target=canonical_tgt,
-                        kind=rel.kind,
-                        source_tool=rel.source_tool,
-                        confidence=rel.confidence,
+            # Try each extractable kind for this tool
+            extractable_kinds = _TOOL_EXTRACTS.get(tool_name, [])
+            extractable_kinds = [k for k in extractable_kinds if k != kind]  # skip same kind
+            for ek in extractable_kinds:
+                found = _extract_for_kind(output, ek)
+                for val in found:
+                    if val.lower() == value.lower():
+                        continue  # same value, skip
+                    conf = _confidence(ek, depth + 1)
+                    de = PivotEntity(
+                        value=val,
+                        kind=ek,
+                        depth=depth + 1,
+                        confidence=conf,
+                        source_tool=tool_name,
+                        source_target=value,
                     )
-                )
+                    discovered.append(de)
+                    # Enqueue for further investigation if confidence is high enough
+                    ekey = (ek, val.lower())
+                    if (
+                        conf >= _MIN_CONFIDENCE_TO_ENQUEUE
+                        and ekey not in investigated
+                        and ekey not in enqueued
+                        and depth + 1 < max_depth
+                        and len(queued := len([q for q in queue if q not in investigated])) < max_entities_to_enqueue
+                    ):
+                        enqueued.add(ekey)
+                        queue.append((val, ek, depth + 1))
+
+        layers.append(LayerResult(
+            depth=depth,
+            seed_entity=value,
+            tool_results=results,
+            discovered=discovered,
+        ))
 
     logger.debug(
-        "pivot: done — %d entities, %d relationships, %d tool calls",
-        len(graph._entities),
-        len(graph._relationships),
-        call_count,
+        "pivot: done — %d layers, %d tool calls, %d total discovered entities",
+        len(layers), call_count,
+        sum(len(l.discoved) for l in layers),
     )
-    return graph
+    return layers
 
 
 # ---------------------------------------------------------------------------
-# Agent-safe wrapper (conservative budgets, returns JSON string)
+# Aggregate pivot findings into a dossier-compatible payload
 # ---------------------------------------------------------------------------
 
 
-async def investigate_graph_for_agent(
+def _report_from_layers(layers: list[LayerResult]) -> str:
+    """Build a markdown report from pivot layer results."""
+    lines = ["# Recursive OSINT Investigation", ""]
+    for layer in layers:
+        lines.append(f"## Depth {layer.depth}: {layer.seed_entity}")
+        lines.append("")
+        if layer.discovered:
+            for de in layer.discovered:
+                lines.append(
+                    f"- **{de.value}** ({de.kind.value}) — conf {de.confidence:.0%}, "
+                    f"from {de.source_tool} → {de.source_target}"
+                )
+            lines.append("")
+        for tool, output in layer.tool_results.items():
+            if output:
+                lines.append(f"### {tool}")
+                lines.append("")
+                lines.append(f"```\n{output}\n```")
+                lines.append("")
+    return "\n".join(lines)
+
+
+async def pivot_to_dossier_payload(
     seed: str,
-    max_depth: int = 1,
-    max_entities: int = 15,
-    max_tool_calls: int = 20,
-    timeout_seconds: int = 30,
-) -> str:
-    """Run investigate_graph with agent-safe budgets and return JSON string.
+    *,
+    max_depth: int = 2,
+    max_entities: int = 20,
+    max_tool_calls: int = 40,
+    tool_timeout: int = 30,
+) -> dict[str, Any]:
+    """Run recursive investigation and produce a dossier-compatible payload.
 
-    Conservative defaults prevent runaway cost when called from the agent loop.
-    The agent loop awaits this coroutine directly — no asyncio.run() is used.
+    This is an alternative to ``dossier.run_dossier()`` for deep/unknown
+    targets: instead of a flat tool chain + LLM synthesis, it runs a BFS
+    pivot and returns findings as entities with links back to their source.
+    LLM synthesis is *not* used here — entities are derived deterministically
+    from tool output patterns.
+
+    The returned dict has the same shape as ``dossier.run_dossier()``:
+    {source_platform, report, confidence, entities, links}
+    so Legios's single write door handles it identically.
     """
-    graph = await investigate_graph(
+    layers = await investigate_recursive(
         seed,
         max_depth=max_depth,
-        max_entities=max_entities,
+        max_entities_to_enqueue=max_entities,
         max_tool_calls=max_tool_calls,
-        timeout_seconds=timeout_seconds,
+        tool_timeout=tool_timeout,
     )
-    return graph.to_json()
+
+    entities: list[dict[str, Any]] = []
+    links: list[dict[str, Any]] = []
+    entity_ref_map: dict[str, str] = {}  # value → ref_id
+    ref_counter: list[int] = [0]
+
+    def _ref_id() -> str:
+        ref_counter[0] += 1
+        return f"pv{ref_counter[0]}"
+
+    for layer in layers:
+        seed_ref = _entity_map_get_or_create(
+            layer.seed_entity, entities, entity_ref_map, _ref_id
+        )
+
+        for de in layer.discovered:
+            ref = _entity_map_get_or_create(de.value, entities, entity_ref_map, _ref_id, de.kind, de.confidence)
+            links.append({
+                "link_type": "sourced_from",
+                "src_ref": ref,
+                "src_label": de.value,
+                "dst_ref": seed_ref,
+                "confidence": de.confidence * 0.9,
+            })
+            # If same email and username, link them
+            # (handled by the kind-based mapping)
+
+    # Compute overall confidence as average of all discoveries, weighted by depth
+    all_conf = [de.confidence for layer in layers for de in layer.discovered]
+    avg_conf = sum(all_conf) / len(all_conf) if all_conf else 0.0
+
+    report = _report_from_layers(layers)
+    return {
+        "source_platform": "openosint",
+        "report": report,
+        "confidence": round(avg_conf, 2),
+        "entities": entities,
+        "links": links,
+        "pivot_layers": len(layers),
+        "pivot_depth": max_depth if layers else 0,
+    }
+
+
+def _entity_map_get_or_create(
+    value: str,
+    entities: list[dict[str, Any]],
+    ref_map: dict[str, str],
+    ref_id_fn,
+    kind: Kind | None = None,
+    confidence: float = 0.5,
+) -> str:
+    """Get or create the ref_id for a value in the entity list."""
+    nv = value.lower()
+    if nv in ref_map:
+        return ref_map[nv]
+    rid = ref_id_fn()
+    ref_map[nv] = rid
+
+    k = kind or detect_kind(value)
+    entity_type = {
+        Kind.EMAIL: "Persona",
+        Kind.USERNAME: "Persona",
+        Kind.DOMAIN: "Organization",
+        Kind.IP: "Platform",
+        Kind.PHONE: "Sensor",
+        Kind.UNKNOWN: "IntelProduct",
+    }.get(k, "IntelProduct")
+
+    props: dict[str, Any] = {}
+    if k == Kind.EMAIL:
+        props["platform"] = "email"
+        props["associated_email"] = value
+    elif k == Kind.USERNAME:
+        props["platform"] = "social_media"
+        props["handle"] = value
+    elif k == Kind.DOMAIN:
+        props["domain"] = value
+    elif k == Kind.IP:
+        props["ip_address"] = value
+
+    entities.append({
+        "entity_type": entity_type,
+        "display_name": value,
+        "ref_id": rid,
+        "confidence": confidence,
+        "properties": props,
+    })
+    return rid

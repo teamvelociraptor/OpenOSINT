@@ -486,7 +486,11 @@ async def _call_dossier(arguments: dict[str, Any]) -> CallToolResult:
             isError=True,
         )
     try:
-        payload = await run_dossier(target, arguments.get("target_type"))
+        payload = await run_dossier(
+            target,
+            arguments.get("target_type"),
+            recursive=bool(arguments.get("recursive", False)),
+        )
         return CallToolResult(
             content=[TextContent(type="text", text=json.dumps(payload, indent=2))],
             isError=False,
@@ -552,7 +556,6 @@ def main() -> None:
                 port = int(args[i + 1])
         serve_http(host, port)
         return
-    asyncio.run(_serve())
     asyncio.run(_serve())
 
 

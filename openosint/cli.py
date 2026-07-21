@@ -106,6 +106,8 @@ def _build_parser() -> argparse.ArgumentParser:
             "  openosint                                   # interactive AI session\n"
             "  openosint email target@example.com          # direct email scan\n"
             "  openosint username johndoe99                # direct username scan\n"
+            "  openosint dossier example.com              # full investigation dossier\n"
+            "  openosint dossier admin@example.com --json   # dossier as structured JSON\n"
             "  openosint shodan 8.8.8.8                    # Shodan host lookup\n"
             "  openosint censys 8.8.8.8                   # Censys host lookup\n"
             "  openosint censys example.com               # Censys certificate search\n"
@@ -594,6 +596,39 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Investigation target (e.g. example.com).",
     )
 
+    # dossier
+    dossier_cmd = subparsers.add_parser(
+        "dossier",
+        help="Compound OSINT investigation — runs the full tool chain and returns structured intelligence (no AI required for raw output, LLM for entity synthesis optional).",
+    )
+    dossier_cmd.add_argument(
+        "target",
+        type=str,
+        metavar="TARGET",
+        help="One OSINT target: email, username, domain, IP, phone, or org/person name.",
+    )
+    dossier_cmd.add_argument(
+        "--type",
+        type=str,
+        dest="target_type",
+        choices=["domain", "email", "username", "phone", "ip", "organization", "person"],
+        help="Tool chain type (inferred from target if omitted).",
+    )
+    dossier_cmd.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output the full structured JSON payload (Legios-compatible).",
+    )
+    dossier_cmd.add_argument(
+        "-r",
+        "--recursive",
+        action="store_true",
+        dest="recursive",
+        help="Enable recursive pivot investigation (up to 2 BFS hops on discovered identifiers).",
+    )
+    )
+
     return parser
 
 
@@ -946,6 +981,37 @@ def _handle_sponsors() -> None:
 # ---------------------------------------------------------------------------
 
 
+async def _handle_dossier(
+    target: str,
+    target_type: str | None = None,
+    json_output: bool = False,
+    recursive: bool = False,
+) -> None:
+    """Run a compound dossier investigation and display results."""
+    from openosint.dossier import run_dossier
+
+    payload = await run_dossier(target, target_type, recursive=recursive)
+    if json_output:
+        _emit_json(payload)
+        return
+
+    print(_DIVIDER)
+    print(f" DOSSIER: {target} ".center(60, "="))
+    print(_DIVIDER)
+    print(payload.get("report", "_No report generated._"))
+    print()
+    conf = payload.get("confidence", 0.0)
+    labels = {0.8: "HIGH", 0.6: "MEDIUM", 0.4: "LOW"}
+    label = next((v for k, v in sorted(labels.items(), reverse=True) if conf >= k), "NONE")
+    ent = len(payload.get("entities", []))
+    lnk = len(payload.get("links", []))
+    print(_DIVIDER)
+    print(f" Confidence: {conf:.0%} ({label})")
+    print(f" Entities:   {ent}  |  Links: {lnk}")
+    print(f" Source:     {payload.get('source_platform', 'unknown')}")
+    print(_DIVIDER)
+
+
 async def _handle_web(
     host: str = "127.0.0.1",
     port: int = 8080,
@@ -1122,6 +1188,13 @@ async def _async_main() -> None:
         )
     elif args.command == "playbook":
         await _handle_playbook(args.recipe, args.target, is_pdf_disabled)
+    elif args.command == "dossier":
+        await _handle_dossier(
+            args.target,
+            target_type=getattr(args, "target_type", None),
+            json_output=getattr(args, "json_output", False),
+            recursive=getattr(args, "recursive", False),
+        )
     elif args.command == "multi":
         await _handle_multi(
             args.targets, api_key=getattr(args, "api_key", None), is_pdf_disabled=is_pdf_disabled

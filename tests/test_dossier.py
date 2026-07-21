@@ -69,18 +69,23 @@ class TestValidatePayload:
 
 
 class TestReportOnlyFallback:
-    async def test_synth_returns_report_only_when_llm_unavailable(self):
-        """If the synthesis LLM can't be reached, dossier must return a usable
-        report-only payload — never fabricated entity structure."""
+    async def test_synth_falls_back_to_deterministic_when_llm_unavailable(self):
+        """If the synthesis LLM can't be reached, dossier now falls back to
+        deterministic entity extraction — entities are derived from tool output
+        patterns (subdomains → NetworkService, etc.) rather than returning
+        an empty-entities report."""
         import os
 
         os.environ["OPENOSINT_LITELLM_BASE_URL"] = "http://127.0.0.1:9/v1"
-        # Force the openai import to fail path is covered by _synthesize's try.
         fake_results = {"search_domain": "Subdomains found for example.com:\n[+] a.example.com"}
         payload = await d._synthesize("example.com", "domain", fake_results)
         assert payload["source_platform"] == "openosint"
-        assert payload["entities"] == []
-        assert payload["links"] == []
+        # Entities are now extracted deterministically — not empty.
+        assert len(payload["entities"]) > 0
+        assert any(e["entity_type"] == "NetworkService" and "a.example.com" in e["display_name"]
+                   for e in payload["entities"])
+        # Links connect the discovered entities via sourced_from.
+        assert len(payload["links"]) > 0
         assert "example.com" in payload["report"]
 
     async def test_run_dossier_empty_target(self):

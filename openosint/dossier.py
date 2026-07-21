@@ -163,6 +163,196 @@ Rules:
 - Output ONLY the JSON object, no prose before or after."""
 
 
+# ---------------------------------------------------------------------------
+# Deterministic entity extraction — fallback when the synthesis LLM is
+# unavailable.  Extracts structured entities from raw tool output using
+# pattern matching, maps them to Legios ontology types.
+# ---------------------------------------------------------------------------
+
+
+def _extract_entities_deterministic(
+    results: dict[str, str],
+    target: str,
+    target_type: str,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], float]:
+    """Parse raw tool outputs for structured entity/link drafts.
+
+    Returns (entities, links, confidence).  Each entity has the shape
+    Legios's ingest_from_payload expects: entity_type, display_name,
+    ref_id, properties, optional lat/lon/classification.  Links are
+    {link_type, src_ref, dst_ref, confidence}.
+
+    This is best-effort and intentionally conservative — if a pattern
+    doesn't match, no entity is created.  The LLM synthesis should always
+    produce richer results; this is purely a fallback so that the ontology
+    gets *something* even when the LLM can't be reached."""
+    entities: list[dict[str, Any]] = []
+    links: list[dict[str, Any]] = []
+    ref_map: dict[str, str] = {}
+    ref_counter: list[int] = [0]
+
+    def _ref(label: str) -> str:
+        nl = label.lower().replace(" ", "_")[:48]
+        if nl not in ref_map:
+            ref_map[nl] = f"det{nl}"
+        return ref_map[nl]
+
+    def _add(
+        etype: str, name: str, props: dict | None = None,
+        conf: float = 0.6, lat: float | None = None, lon: float | None = None,
+    ) -> str:
+        rid = _ref(name)
+        ent: dict[str, Any] = {
+            "entity_type": etype, "display_name": name,
+            "ref_id": rid, "confidence": conf,
+        }
+        if props:
+            ent["properties"] = props
+        if lat is not None:
+            ent["lat"] = lat
+        if lon is not None:
+            ent["lon"] = lon
+        entities.append(ent)
+        return rid
+
+    def _link(lt: str, src: str, dst: str, conf: float = 0.6) -> None:
+        links.append({"link_type": lt, "src_ref": src, "dst_ref": dst, "confidence": conf})
+
+    # ── IntelProduct for the report itself ───────────────────────────────
+    report_ref = _add("IntelProduct", f"Dossier: {target}", {
+        "format": "markdown", "topic": target, "confidence": 0.8},
+        conf=0.8)
+
+    # ── WHOIS ────────────────────────────────────────────────────────────
+    whois_text = results.get("search_whois", "")
+    if whois_text:
+        # Registrant organization
+        org_m = re.search(r"(?i)(?:Registrant\s+)?(?:Org|Organization|Company)[\s:]+(.+)", whois_text)
+        if org_m:
+            org_name = org_m.group(1).strip().rstrip(".")
+            if org_name and org_name.lower() != target.lower():
+                org_ref = _add("Organization", org_name, {
+                    "sector": "unknown", "source": "whois"}, conf=0.65)
+                _link("sourced_from", org_ref, report_ref)
+        # Registrant email
+        email_m = re.search(r"(?i)Registrar\s+Abuse\s+Contact\s+Email[\s:]+(.+)", whois_text)
+        if not email_m:
+            email_m = re.search(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", whois_text)
+        if email_m:
+            email_val = email_m.group(0).strip() if email_m.groups() else email_m.group(0)
+            persona_ref = _add("Persona", email_val, {
+                "platform": "email", "associated_email": email_val}, conf=0.6)
+            _link("sourced_from", persona_ref, report_ref)
+        # Name servers
+        ns_matches = re.findall(r"(?i)Name\s+Server[\s:]+(\S+)", whois_text)
+        for ns in ns_matches[:3]:
+            ns_ref = _add("NetworkService", ns.strip("."), {
+                "service_type": "dns", "role": "nameserver"}, conf=0.5)
+            _link("sourced_from", ns_ref, report_ref)
+
+    # ── DNS ──────────────────────────────────────────────────────────────
+    dns_text = results.get("search_dns", "")
+    if dns_text:
+        a_records = re.findall(r"(?i)\[DNS\]\s*A[\s:]+(\d{1,3}(?:\.\d{1,3}){3})", dns_text)
+        for ip_val in a_records[:5]:
+            ip_ref = _add("Platform", ip_val, {
+                "ip_address": ip_val, "role": "dns_resolved"}, conf=0.7)
+            _link("sourced_from", ip_ref, report_ref)
+        mx_records = re.findall(r"(?i)\[DNS\]\s*MX[\s:]+\d+\s+(\S+)", dns_text)
+        for mx in mx_records[:3]:
+            mx_ref = _add("NetworkService", mx.strip("."), {
+                "service_type": "mail", "role": "mx"}, conf=0.65)
+            _link("sourced_from", mx_ref, report_ref)
+
+    # ── Holehe (email) ──────────────────────────────────────────────────
+    email_text = results.get("search_email", "")
+    if email_text:
+        found_services = re.findall(r"\[\+\]\s+(\S+)", email_text)
+        for svc in found_services[:10]:
+            svc_name = svc.rstrip(".")
+            persona_ref = _add("Persona", f"{target} @ {svc_name}", {
+                "platform": svc_name, "associated_email": target}, conf=0.75)
+            _link("sourced_from", persona_ref, report_ref)
+
+    # ── Sherlock (username) ─────────────────────────────────────────────
+    user_text = results.get("search_username", "")
+    if user_text:
+        platform_matches = re.findall(
+            r"\[\+\]\s+(\S+):\s+(https?://\S+)", user_text)
+        for plat, url in platform_matches[:15]:
+            persona_ref = _add("Persona", f"{target} @ {plat}", {
+                "platform": plat.lower(), "profile_url": url,
+                "handle": target}, conf=0.8)
+            _link("sourced_from", persona_ref, report_ref)
+
+    # ── IP geolocation ──────────────────────────────────────────────────
+    ip_text = results.get("search_ip", "")
+    if ip_text:
+        org_ip = re.search(r"(?i)\[\+\]\s+Org[\s:]+(.+)", ip_text)
+        if org_ip:
+            org_val = org_ip.group(1).strip()
+            org_ref = _add("Organization", org_val, {
+                "sector": "isp", "source": "ipinfo"}, conf=0.6)
+            _link("sourced_from", org_ref, report_ref)
+        host_ip = re.search(r"(?i)\[\+\]\s+Hostname[\s:]+(\S+)", ip_text)
+        if host_ip:
+            host_val = host_ip.group(1).strip()
+            ns_ref = _add("NetworkService", host_val, {
+                "service_type": "hosted", "role": "reverse_dns"}, conf=0.6)
+            _link("sourced_from", ns_ref, report_ref)
+
+    # ── Breaches ────────────────────────────────────────────────────────
+    breach_text = results.get("search_breach", "")
+    if breach_text:
+        breach_count = re.search(
+            r"(?i)Found\s+in\s+(\d+)\s+breach", breach_text)
+        if breach_count:
+            count = int(breach_count.group(1))
+            ev_ref = _add("Event", f"Breach exposure for {target}", {
+                "severity": "high" if count > 3 else "medium",
+                "kind": "breach", "breach_count": count}, conf=0.85)
+            _link("sourced_from", ev_ref, report_ref)
+
+    # ── Subdomains ──────────────────────────────────────────────────────
+    domain_text = results.get("search_domain", "")
+    if domain_text:
+        subs = re.findall(r"\[\+\]\s+(\S+)", domain_text)
+        for sub in subs[:10]:
+            sub = sub.strip().rstrip(".")
+            if sub and sub != target:
+                sub_ref = _add("NetworkService", sub, {
+                    "service_type": "subdomain","parent_domain": target}, conf=0.75)
+                _link("sourced_from", sub_ref, report_ref)
+
+    # ── IP2Location (VPN/Proxy detection) ──────────────────────────────
+    ip2l_text = results.get("search_ip2location", "")
+    if ip2l_text:
+        if re.search(r"(?i)Proxy|VPN|Tor", ip2l_text):
+            sec_ref = _add("Event", f"Anonymization detected for {target}", {
+                "kind": "anonymization_service", "source": "ip2location"}, conf=0.7)
+            _link("sourced_from", sec_ref, report_ref)
+
+    # ── AbuseIPDB ───────────────────────────────────────────────────────
+    abuse_text = results.get("search_abuseipdb", "")
+    if abuse_text:
+        score_m = re.search(r"(?i)(?:abuse\s+confidence\s+score|score)[\s:]+(\d+)", abuse_text)
+        if score_m:
+            score = int(score_m.group(1))
+            if score > 50:
+                abuse_ref = _add("Event", f"Abuse report for {target}", {
+                    "kind": "abuse_reports", "abuse_confidence_score": score,
+                    "severity": "critical" if score > 80 else "high"}, conf=score / 100.0)
+                _link("sourced_from", abuse_ref, report_ref)
+
+    confidence = 0.5
+    if entities:
+        # Discount non-IntelProduct entities; the target report itself is always present
+        meaningful = len([e for e in entities if e["entity_type"] != "IntelProduct"])
+        confidence = min(0.8, 0.3 + meaningful * 0.08)
+
+    return entities, links, confidence
+
+
 def _build_synth_prompt(target: str, target_type: str, results: dict[str, str]) -> str:
     body = "\n\n".join(f"### {name}\n{txt}" for name, txt in results.items())
     return _SYNTHESIS_PROMPT.format(
@@ -185,15 +375,16 @@ def _llm_config() -> dict[str, str]:
 
 
 async def _synthesize(target: str, target_type: str, results: dict[str, str]) -> dict[str, Any]:
-    """LLM synthesis. Returns the structured payload dict. On any failure,
-    returns a report-only payload (no entities) so the caller always gets
-    something usable — never fabricated structure."""
-    report_only = _report_only_payload(target, target_type, results)
+    """LLM synthesis with deterministic fallback. Returns the structured
+    payload dict with entity/link drafts. On LLM failure, falls back to
+    deterministic extraction from raw tool output patterns — never returns
+    an empty-entities payload unless the tools produced nothing at all."""
+    fallback = _det_fallback(target, target_type, results)
     try:
         from openai import AsyncOpenAI
     except Exception as exc:  # openai extra not installed
-        logger.warning("openai package unavailable (%s); dossier returning report-only", exc)
-        return report_only
+        logger.warning("openai package unavailable (%s); using deterministic extraction", exc)
+        return fallback
 
     cfg = _llm_config()
     client = AsyncOpenAI(base_url=cfg["base_url"], api_key=cfg["api_key"])
@@ -207,8 +398,8 @@ async def _synthesize(target: str, target_type: str, results: dict[str, str]) ->
             timeout=120,
         )
     except Exception as exc:
-        logger.warning("dossier LLM synthesis failed (%s); returning report-only", exc)
-        return report_only
+        logger.warning("dossier LLM synthesis failed (%s); using deterministic extraction", exc)
+        return fallback
 
     text = (resp.choices[0].message.content or "").strip()
     text = _strip_json_fences(text)
@@ -273,16 +464,53 @@ def _report_only_payload(target: str, target_type: str, results: dict[str, str])
     }
 
 
+def _det_fallback(target: str, target_type: str, results: dict[str, str]) -> dict[str, Any]:
+    """Deterministic fallback: extract entities from raw tool output
+    patterns without an LLM.  Used when the synthesis model is unavailable.
+    Produces the same Legios-compatible payload shape as LLM synthesis.
+    Returns a report-only payload (no entities) if extraction yields
+    nothing, which is the cleanest way to signal "tools ran but found
+    nothing structured" vs "tools didn't run at all"."""
+    entities, links, confidence = _extract_entities_deterministic(results, target, target_type)
+    report = _report_only_payload(target, target_type, results)["report"]
+    if entities:
+        report = report.replace(
+            "**Note:** Structured entity synthesis unavailable",
+            "**Note:** Entities extracted deterministically (no LLM)."
+        )
+    payload: dict[str, Any] = {
+        "source_platform": "openosint",
+        "report": report,
+        "confidence": confidence,
+        "entities": entities,
+        "links": links,
+    }
+    return payload
+
+
 # ---------------------------------------------------------------------------
 # Public entry point
 # ---------------------------------------------------------------------------
-async def run_dossier(target: str, target_type: str | None = None) -> dict[str, Any]:
+async def run_dossier(
+    target: str,
+    target_type: str | None = None,
+    *,
+    recursive: bool = False,
+    max_pivot_depth: int = 2,
+    max_pivot_entities: int = 20,
+    max_pivot_calls: int = 40,
+) -> dict[str, Any]:
     """Run a compound OSINT operation against ``target`` and return a
     structured, ontology-ready payload (DOCTRINE.md §4.5 ``dossier``).
 
     ``target_type`` is one of domain/email/username/phone/ip/organization/
     person; inferred from the target string when omitted. The returned dict
-    is directly consumable by Legios's ``Ontology.ingest_from_payload``."""
+    is directly consumable by Legios's ``Ontology.ingest_from_payload``.
+
+    When ``recursive=True``, the investigation uses the BFS pivot engine
+    (``pivot.investigate_recursive``) to automatically discover and
+    re-investigate new entities at deeper hops, returning richer entity/
+    link graphs. Depth/clarity/tool-call budgets control how deep it goes."""
     target = target.strip()
     if not target:
         return {"source_platform": "openosint", "report": "_Empty target._",
@@ -290,8 +518,81 @@ async def run_dossier(target: str, target_type: str | None = None) -> dict[str, 
     ttype = (target_type or _infer_target_type(target)).strip().lower()
     if ttype not in _TOOL_CHAIN:
         ttype = "domain"
+
     results = await _run_chain(target, ttype)
+
+    # If recursive, run the pivot engine for deeper investigation.
+    # The pivot discovers new entities from tool output and re-investigates
+    # them at deeper BFS layers. All findings are fed into the LLM synthesis.
+    pivot_layers: list[dict[str, Any]] = []
+    if recursive and ttype in ("domain", "email", "username", "ip"):
+        try:
+            from openosint.pivot import investigate_recursive
+
+            layers = await investigate_recursive(
+                target,
+                max_depth=max_pivot_depth,
+                max_entities_to_enqueue=max_pivot_entities,
+                max_tool_calls=max_pivot_calls,
+                tool_timeout=30,
+            )
+            pivot_layers = [
+                {
+                    "depth": l.depth,
+                    "seed": l.seed_entity,
+                    "discovered": [
+                        {"value": e.value, "kind": e.kind.value,
+                         "depth": e.depth, "confidence": e.confidence,
+                         "source_tool": e.source_tool}
+                        for e in l.discovered
+                    ],
+                }
+                for l in layers if l.discovered
+            ]
+        except Exception as exc:
+            logger.warning("dossier: recursive pivot failed (%s); continuing with flat results", exc)
+
     payload = await _synthesize(target, ttype, results)
+    # Merge pivot discoveries into payload as additional entities
+    if pivot_layers:
+        pivot_entities = []
+        pivot_links = []
+        pivot_ref_map: dict[str, str] = {}
+        ref_counter: list[int] = [len(payload.get("entities", []))]
+
+        def _pivot_ref(val: str) -> str:
+            nv = val.lower()
+            if nv not in pivot_ref_map:
+                pivot_ref_map[nv] = f"pd{ref_counter[0]}"
+                ref_counter[0] += 1
+            return pivot_ref_map[nv]
+
+        for pl in pivot_layers:
+            seed_ref = _pivot_ref(pl["seed"])
+            for de in pl["discovered"]:
+                ref = _pivot_ref(de["value"])
+                pivot_entities.append({
+                    "entity_type": "Persona",
+                    "display_name": de["value"],
+                    "ref_id": ref,
+                    "confidence": de["confidence"],
+                    "properties": {
+                        "kind": de["kind"],
+                        "source_tool": de["source_tool"],
+                        "pivot_depth": de["depth"],
+                    },
+                })
+                pivot_links.append({
+                    "link_type": "sourced_from",
+                    "src_ref": ref,
+                    "dst_ref": seed_ref,
+                    "confidence": de["confidence"],
+                })
+
+        payload["entities"] = list(payload.get("entities", [])) + pivot_entities
+        payload["links"] = list(payload.get("links", [])) + pivot_links
+        payload["pivot_layers"] = pivot_layers
+
     # Attach the raw tool outputs as provenance; never lose the ground truth.
     payload["raw_tool_output"] = results
     return payload

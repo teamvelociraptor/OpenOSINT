@@ -136,17 +136,19 @@ def build_http_server() -> FastMCP:
         return await run_dns_osint(domain, timeout_seconds=10)
 
     @mcp.tool()
-    async def dossier(target: str, target_type: str = "") -> dict:
+    async def dossier(target: str, target_type: str = "", recursive: bool = False) -> dict:
         """Compound OSINT operation (DOCTRINE.md §4.5): run the full relevant
         tool chain against one target and return a structured, ontology-ready
         payload — a markdown report plus entity and link drafts (Persona,
         Organization, Installation, IntelProduct, …) that Legios ingests
         directly into its Unified Intelligence Model. target_type selects the
         chain: domain/email/username/phone/ip/organization/person (inferred
-        from the target if empty). Returns a JSON dict."""
+        from the target if empty). When recursive=True, automatically pivots
+        on discovered entities up to 2 BFS hops (requires more API calls).
+        Returns a JSON dict."""
         from openosint.dossier import run_dossier
 
-        payload = await run_dossier(target, target_type or None)
+        payload = await run_dossier(target, target_type or None, recursive=recursive)
         return payload
 
     logger.info("OpenOSINT HTTP MCP server built (streamable-http, path /mcp)")

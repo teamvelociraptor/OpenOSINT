@@ -132,6 +132,9 @@ logs/
 *.swo
 *~
 
+# Lock files (uv generates these, not tracked in source)
+uv.lock
+
 # Vibe-coded / AI-generated test files
 # test_coverage_boost.py exists solely to pad coverage metrics to 80% — not real tests
 tests/test_coverage_boost.py
