@@ -627,7 +627,6 @@ def _build_parser() -> argparse.ArgumentParser:
         dest="recursive",
         help="Enable recursive pivot investigation (up to 2 BFS hops on discovered identifiers).",
     )
-    )
 
     return parser
 
