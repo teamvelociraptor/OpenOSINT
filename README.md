@@ -56,7 +56,7 @@ openosint web
 openosint email target@example.com
 ```
 
-New to OSINT methodology? Grab the [free 5-prompt starter set](https://openosint.tech/free-prompts?utm_source=github&utm_medium=readme-quickstart&utm_campaign=free_prompts) before your first run.
+New to OSINT methodology? Grab the [free 5-prompt starter set](https://openosint.tech/free-prompts?utm_source=github&utm_medium=readme-quickstart&utm_campaign=free_prompts) or the [free AI OSINT Field Manual](https://openosint.tech/free-manual?utm_source=github&utm_medium=readme-quickstart&utm_campaign=free_manual) before your first run.
 
 ## Usage
 
@@ -629,6 +629,16 @@ New to AI-assisted OSINT? The **free starter set** gives you 5 structured prompt
 - Free PDF, instant download — just your email
 
 **→ [Get the free starter set](https://openosint.tech/free-prompts?utm_source=github&utm_medium=readme-resources&utm_campaign=free_prompts)**
+
+### AI OSINT Field Manual (Free Edition)
+
+New to AI-assisted OSINT? The **AI OSINT Field Manual** is a free guide to the repeatable 5-phase method for AI-assisted OSINT investigations.
+
+- The repeatable 5-phase method for AI-assisted OSINT investigations
+- Works with any AI assistant (Claude, ChatGPT, Gemini)
+- Free PDF, instant download — just your email
+
+**→ [Get the free Field Manual](https://openosint.tech/free-manual?utm_source=github&utm_medium=readme-resources&utm_campaign=free_manual)**
 
 ### AI OSINT Prompt Pack
 
